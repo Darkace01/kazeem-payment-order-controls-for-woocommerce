@@ -1,14 +1,14 @@
 <?php
 /**
- * Plugin Name: Control Suite Toolkit By Kazeem
- * Plugin URI: https://github.com/Darkace01/control-suite-toolkit-by-kazeem
+ * Plugin Name: Kazeem Payment & Order Controls for WooCommerce
+ * Plugin URI: https://github.com/Darkace01/kazeem-payment-order-controls-for-woocommerce
  * Description: Comprehensive control suite for WooCommerce to manage order restrictions, payment gateway rules, shipping event webhooks, and advanced currency switching.
  * Version: 1.2.7
  * Author: Kazeem Quadri
  * Author URI: https://github.com/Darkace01
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: control-suite-toolkit-by-kazeem
+ * Text Domain: kazeem-payment-order-controls-for-woocommerce
  * Requires at least: 6.2
  * Requires PHP: 7.2
  * WC requires at least: 3.0
@@ -22,44 +22,44 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin file constant
-if (!defined('CONTROL_SUITE_TOOLKIT_FILE')) {
-    define('CONTROL_SUITE_TOOLKIT_FILE', __FILE__);
+if (!defined('KAZEEM_PAYMENT_ORDER_CONTROLS_FILE')) {
+    define('KAZEEM_PAYMENT_ORDER_CONTROLS_FILE', __FILE__);
 }
 
 // Define plugin constants
-if (!defined('CONTROL_SUITE_TOOLKIT_VERSION')) {
-    define('CONTROL_SUITE_TOOLKIT_VERSION', '1.2.7');
+if (!defined('KAZEEM_PAYMENT_ORDER_CONTROLS_VERSION')) {
+    define('KAZEEM_PAYMENT_ORDER_CONTROLS_VERSION', '1.2.7');
 }
-if (!defined('CONTROL_SUITE_TOOLKIT_PLUGIN_DIR')) {
-    define('CONTROL_SUITE_TOOLKIT_PLUGIN_DIR', plugin_dir_path(__FILE__));
+if (!defined('KAZEEM_PAYMENT_ORDER_CONTROLS_PLUGIN_DIR')) {
+    define('KAZEEM_PAYMENT_ORDER_CONTROLS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 }
-if (!defined('CONTROL_SUITE_TOOLKIT_PLUGIN_URL')) {
-    define('CONTROL_SUITE_TOOLKIT_PLUGIN_URL', plugin_dir_url(__FILE__));
+if (!defined('KAZEEM_PAYMENT_ORDER_CONTROLS_PLUGIN_URL')) {
+    define('KAZEEM_PAYMENT_ORDER_CONTROLS_PLUGIN_URL', plugin_dir_url(__FILE__));
 }
 
 // Prevent duplicate class declaration
-if (!class_exists('Control_Suite_Toolkit')) {
-class Control_Suite_Toolkit {
+if (!class_exists('Kazeem_Payment_Order_Controls')) {
+class Kazeem_Payment_Order_Controls {
     
-    const PAGE_DASHBOARD = 'control-suite-toolkit-by-kazeem';
-    const PAGE_LOGS = 'control-suite-toolkit-by-kazeem-logs';
-    const PAGE_ORDER_CONTROL = 'control-suite-toolkit-by-kazeem-order-control';
-    const PAGE_PAYMENT_GATEWAY = 'control-suite-toolkit-by-kazeem-payment-gateway';
-    const PAGE_CURRENCY_CONTROL = 'control-suite-toolkit-by-kazeem-currency-control';
+    const PAGE_DASHBOARD = 'kazeem-payment-order-controls-for-woocommerce';
+    const PAGE_LOGS = 'kazeem-payment-order-controls-for-woocommerce-logs';
+    const PAGE_ORDER_CONTROL = 'kazeem-payment-order-controls-for-woocommerce-order-control';
+    const PAGE_PAYMENT_GATEWAY = 'kazeem-payment-order-controls-for-woocommerce-payment-gateway';
+    const PAGE_CURRENCY_CONTROL = 'kazeem-payment-order-controls-for-woocommerce-currency-control';
     
     const LABEL_ORDER_CONTROL = 'Order Control';
     const LABEL_PAYMENT_GATEWAY = 'Payment Gateway';
     const LABEL_CURRENCY_CONTROL = 'Currency Control';
     
-    private $logTable = 'cst_event_logs';
-    private $optionName = 'cst_shipping_event_settings';
+    private $logTable = 'kpoc_event_logs';
+    private $optionName = 'kpoc_shipping_event_settings';
     private $pluginFile;
     private $orderControl;
     private $paymentGatewayControl;
 	private $currencyControl;
     
     public function __construct() {
-        $this->pluginFile = CONTROL_SUITE_TOOLKIT_FILE;
+        $this->pluginFile = KAZEEM_PAYMENT_ORDER_CONTROLS_FILE;
         
         // Load text domain
         add_action('init', array($this, 'loadTextDomain'));
@@ -68,9 +68,9 @@ class Control_Suite_Toolkit {
         $this->loadDependencies();
         
         // Initialize sub-modules
-        $this->orderControl = new Control_Suite_Toolkit_Order_Control();
-        $this->paymentGatewayControl = new Control_Suite_Toolkit_Payment_Gateway_Control();
-		$this->currencyControl = Control_Suite_Toolkit_Currency_Control::instance();
+        $this->orderControl = new Kazeem_Payment_Order_Controls_Order_Control();
+        $this->paymentGatewayControl = new Kazeem_Payment_Order_Controls_Payment_Gateway_Control();
+		$this->currencyControl = Kazeem_Payment_Order_Controls_Currency_Control::instance();
         
         // Register REST API endpoint
         add_action('rest_api_init', array($this, 'registerEndpoint'));
@@ -89,7 +89,7 @@ class Control_Suite_Toolkit {
         add_filter('plugin_action_links_' . plugin_basename($this->pluginFile), array($this, 'addSettingsLink'));
         
         // Register AJAX handlers
-        add_action('wp_ajax_control_suite_toolkit_get_log_details', array($this, 'ajaxGetLogDetails'));
+        add_action('wp_ajax_kazeem_payment_order_controls_get_log_details', array($this, 'ajaxGetLogDetails'));
 
         // Enqueue admin assets
         add_action('admin_enqueue_scripts', array($this, 'enqueueAdminAssets'));
@@ -104,12 +104,12 @@ class Control_Suite_Toolkit {
             return;
         }
 
-        wp_enqueue_style('control-suite-toolkit-by-kazeem-admin', plugins_url('assets/css/admin.css', $this->pluginFile), array(), CONTROL_SUITE_TOOLKIT_VERSION);
-        wp_enqueue_script('control-suite-toolkit-by-kazeem-admin', plugins_url('assets/js/admin.js', $this->pluginFile), array('jquery'), CONTROL_SUITE_TOOLKIT_VERSION, true);
+        wp_enqueue_style('kazeem-payment-order-controls-for-woocommerce-admin', plugins_url('assets/css/admin.css', $this->pluginFile), array(), KAZEEM_PAYMENT_ORDER_CONTROLS_VERSION);
+        wp_enqueue_script('kazeem-payment-order-controls-for-woocommerce-admin', plugins_url('assets/js/admin.js', $this->pluginFile), array('jquery'), KAZEEM_PAYMENT_ORDER_CONTROLS_VERSION, true);
 
-        wp_localize_script('control-suite-toolkit-by-kazeem-admin', 'Control_Suite_Toolkit_Admin', array(
+        wp_localize_script('kazeem-payment-order-controls-for-woocommerce-admin', 'Kazeem_Payment_Order_Controls_Admin', array(
             'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce'    => wp_create_nonce('cst_event_logs')
+            'nonce'    => wp_create_nonce('kpoc_event_logs')
         ));
     }
     
@@ -118,7 +118,7 @@ class Control_Suite_Toolkit {
      */
     public function loadTextDomain() {
         load_plugin_textdomain(
-            'control-suite-toolkit-by-kazeem',
+            'kazeem-payment-order-controls-for-woocommerce',
             false,
             dirname(plugin_basename($this->pluginFile)) . '/languages'
         );
@@ -153,7 +153,12 @@ class Control_Suite_Toolkit {
                 'control-suite-toolkit-logs' => self::PAGE_LOGS,
                 'control-suite-toolkit-order-control' => self::PAGE_ORDER_CONTROL,
                 'control-suite-toolkit-payment-gateway' => self::PAGE_PAYMENT_GATEWAY,
-                'control-suite-toolkit-currency-control' => self::PAGE_CURRENCY_CONTROL
+                'control-suite-toolkit-currency-control' => self::PAGE_CURRENCY_CONTROL,
+                'control-suite-toolkit-by-kazeem' => self::PAGE_DASHBOARD,
+                'control-suite-toolkit-by-kazeem-logs' => self::PAGE_LOGS,
+                'control-suite-toolkit-by-kazeem-order-control' => self::PAGE_ORDER_CONTROL,
+                'control-suite-toolkit-by-kazeem-payment-gateway' => self::PAGE_PAYMENT_GATEWAY,
+                'control-suite-toolkit-by-kazeem-currency-control' => self::PAGE_CURRENCY_CONTROL
             );
             
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -183,8 +188,8 @@ class Control_Suite_Toolkit {
         
         // Add top-level menu in sidebar
         add_menu_page(
-            'Control Suite Toolkit',
-            'Control Suite Toolkit',
+            'Kazeem Payment & Order Controls',
+            'Kazeem Payment & Order Controls',
             'manage_options',
             self::PAGE_DASHBOARD,
             array($this, 'renderDashboardPage'),
@@ -285,7 +290,7 @@ class Control_Suite_Toolkit {
      * Render settings section info
      */
     public function renderSectionInfo() {
-        echo '<p>' . esc_html__('Configure your shipping webhook endpoint settings.', 'control-suite-toolkit-by-kazeem') . '</p>';
+        echo '<p>' . esc_html__('Configure your shipping webhook endpoint settings.', 'kazeem-payment-order-controls-for-woocommerce') . '</p>';
     }
     
     /**
@@ -304,7 +309,7 @@ class Control_Suite_Toolkit {
         echo '<p class="description">' . wp_kses(
             sprintf(
                 /* translators: %s: The full URL of the shipping event webhook. */
-                __('Enter the endpoint slug (e.g., "shipping-webhook"). The full URL will be: <br><strong>%s</strong>', 'control-suite-toolkit-by-kazeem'),
+                __('Enter the endpoint slug (e.g., "shipping-webhook"). The full URL will be: <br><strong>%s</strong>', 'kazeem-payment-order-controls-for-woocommerce'),
                 esc_url($fullUrl)
             ),
             array('br' => array(), 'strong' => array())
@@ -322,7 +327,7 @@ class Control_Suite_Toolkit {
         
         // Get statistics with caching
         $logTable    = $wpdb->prefix . $this->logTable;
-        $cache_group = 'control_suite_toolkit_stats';
+        $cache_group = 'kazeem_payment_order_controls_stats';
         $totalLogs   = wp_cache_get( 'total_logs', $cache_group );
         $successLogs = wp_cache_get( 'success_logs', $cache_group );
         $errorLogs   = wp_cache_get( 'error_logs', $cache_group );
@@ -353,65 +358,65 @@ class Control_Suite_Toolkit {
         
         ?>
         <div class="wrap">
-            <h1><?php esc_html_e('Control Suite Toolkit - Dashboard', 'control-suite-toolkit-by-kazeem'); ?></h1>
+            <h1><?php esc_html_e('Kazeem Payment & Order Controls - Dashboard', 'kazeem-payment-order-controls-for-woocommerce'); ?></h1>
             
             <div class="dashboard-widgets" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
                 
                 <!-- Webhook Info -->
                 <div class="dashboard-widget" style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 5px;">
-                    <h2 style="margin-top: 0;"><span class="dashicons dashicons-admin-links" style="color: #2271b1;"></span> <?php esc_html_e('Shipping Webhook', 'control-suite-toolkit-by-kazeem'); ?></h2>
-                    <p><strong><?php esc_html_e('URL:', 'control-suite-toolkit-by-kazeem'); ?></strong></p>
+                    <h2 style="margin-top: 0;"><span class="dashicons dashicons-admin-links" style="color: #2271b1;"></span> <?php esc_html_e('Shipping Webhook', 'kazeem-payment-order-controls-for-woocommerce'); ?></h2>
+                    <p><strong><?php esc_html_e('URL:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong></p>
                     <input type="text" value="<?php echo esc_url($fullUrl); ?>" readonly class="large-text" style="background: #f5f5f5;" />
                     <p style="margin-top: 10px;">
-                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_LOGS)); ?>" class="button"><?php esc_html_e('View Logs', 'control-suite-toolkit-by-kazeem'); ?></a>
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_LOGS)); ?>" class="button"><?php esc_html_e('View Logs', 'kazeem-payment-order-controls-for-woocommerce'); ?></a>
                     </p>
                 </div>
                 
                 <!-- Event Logs Stats -->
                 <div class="dashboard-widget" style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 5px;">
-                    <h2 style="margin-top: 0;"><span class="dashicons dashicons-list-view" style="color: #2271b1;"></span> <?php esc_html_e('Event Logs', 'control-suite-toolkit-by-kazeem'); ?></h2>
-                    <p><strong><?php esc_html_e('Total:', 'control-suite-toolkit-by-kazeem'); ?></strong> <?php echo esc_html(number_format($totalLogs)); ?></p>
-                    <p><strong><?php esc_html_e('Success:', 'control-suite-toolkit-by-kazeem'); ?></strong> <span style="color: green;"><?php echo esc_html(number_format($successLogs)); ?></span></p>
-                    <p><strong><?php esc_html_e('Errors:', 'control-suite-toolkit-by-kazeem'); ?></strong> <span style="color: red;"><?php echo esc_html(number_format($errorLogs)); ?></span></p>
+                    <h2 style="margin-top: 0;"><span class="dashicons dashicons-list-view" style="color: #2271b1;"></span> <?php esc_html_e('Event Logs', 'kazeem-payment-order-controls-for-woocommerce'); ?></h2>
+                    <p><strong><?php esc_html_e('Total:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <?php echo esc_html(number_format($totalLogs)); ?></p>
+                    <p><strong><?php esc_html_e('Success:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <span style="color: green;"><?php echo esc_html(number_format($successLogs)); ?></span></p>
+                    <p><strong><?php esc_html_e('Errors:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <span style="color: red;"><?php echo esc_html(number_format($errorLogs)); ?></span></p>
                     <p>
-                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_LOGS)); ?>" class="button"><?php esc_html_e('View All Logs', 'control-suite-toolkit-by-kazeem'); ?></a>
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_LOGS)); ?>" class="button"><?php esc_html_e('View All Logs', 'kazeem-payment-order-controls-for-woocommerce'); ?></a>
                     </p>
                 </div>
                 
                 <!-- Order Control Stats -->
                 <div class="dashboard-widget" style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 5px;">
-                    <h2 style="margin-top: 0;"><span class="dashicons dashicons-cart" style="color: #2271b1;"></span> <?php esc_html_e('Order Control', 'control-suite-toolkit-by-kazeem'); ?></h2>
-                    <p><strong><?php esc_html_e('Status:', 'control-suite-toolkit-by-kazeem'); ?></strong> <span style="color: <?php echo esc_attr($orderStats['current_status'] === 'active' ? 'green' : 'red'); ?>; font-weight: bold;"><?php echo esc_html(ucfirst($orderStats['current_status'])); ?></span></p>
-                    <p><strong><?php esc_html_e('Orders Enabled:', 'control-suite-toolkit-by-kazeem'); ?></strong> <?php echo $orderStats['orders_enabled'] ? esc_html__('Yes', 'control-suite-toolkit-by-kazeem') : esc_html__('No', 'control-suite-toolkit-by-kazeem'); ?></p>
-                    <p><strong><?php esc_html_e('Timeframe Enabled:', 'control-suite-toolkit-by-kazeem'); ?></strong> <?php echo $orderStats['timeframe_enabled'] ? esc_html__('Yes', 'control-suite-toolkit-by-kazeem') : esc_html__('No', 'control-suite-toolkit-by-kazeem'); ?></p>
+                    <h2 style="margin-top: 0;"><span class="dashicons dashicons-cart" style="color: #2271b1;"></span> <?php esc_html_e('Order Control', 'kazeem-payment-order-controls-for-woocommerce'); ?></h2>
+                    <p><strong><?php esc_html_e('Status:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <span style="color: <?php echo esc_attr($orderStats['current_status'] === 'active' ? 'green' : 'red'); ?>; font-weight: bold;"><?php echo esc_html(ucfirst($orderStats['current_status'])); ?></span></p>
+                    <p><strong><?php esc_html_e('Orders Enabled:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <?php echo $orderStats['orders_enabled'] ? esc_html__('Yes', 'kazeem-payment-order-controls-for-woocommerce') : esc_html__('No', 'kazeem-payment-order-controls-for-woocommerce'); ?></p>
+                    <p><strong><?php esc_html_e('Timeframe Enabled:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <?php echo $orderStats['timeframe_enabled'] ? esc_html__('Yes', 'kazeem-payment-order-controls-for-woocommerce') : esc_html__('No', 'kazeem-payment-order-controls-for-woocommerce'); ?></p>
                     <p>
-                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_ORDER_CONTROL)); ?>" class="button"><?php esc_html_e('Manage Orders', 'control-suite-toolkit-by-kazeem'); ?></a>
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_ORDER_CONTROL)); ?>" class="button"><?php esc_html_e('Manage Orders', 'kazeem-payment-order-controls-for-woocommerce'); ?></a>
                     </p>
                 </div>
                 
                 <!-- Payment Gateway Stats -->
                 <div class="dashboard-widget" style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 5px;">
-                    <h2 style="margin-top: 0;"><span class="dashicons dashicons-money-alt" style="color: #2271b1;"></span> <?php esc_html_e('Payment Gateways', 'control-suite-toolkit-by-kazeem'); ?></h2>
-                    <p><strong><?php esc_html_e('Total Rules:', 'control-suite-toolkit-by-kazeem'); ?></strong> <?php echo esc_html(number_format($paymentStats['total_rules'])); ?></p>
-                    <p><strong><?php esc_html_e('Active Currencies:', 'control-suite-toolkit-by-kazeem'); ?></strong> <?php echo esc_html(number_format($paymentStats['active_currencies'])); ?></p>
-                    <p><strong><?php esc_html_e('Available Gateways:', 'control-suite-toolkit-by-kazeem'); ?></strong> <?php echo esc_html(number_format($paymentStats['available_gateways'])); ?></p>
+                    <h2 style="margin-top: 0;"><span class="dashicons dashicons-money-alt" style="color: #2271b1;"></span> <?php esc_html_e('Payment Gateways', 'kazeem-payment-order-controls-for-woocommerce'); ?></h2>
+                    <p><strong><?php esc_html_e('Total Rules:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <?php echo esc_html(number_format($paymentStats['total_rules'])); ?></p>
+                    <p><strong><?php esc_html_e('Active Currencies:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <?php echo esc_html(number_format($paymentStats['active_currencies'])); ?></p>
+                    <p><strong><?php esc_html_e('Available Gateways:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <?php echo esc_html(number_format($paymentStats['available_gateways'])); ?></p>
                     <p>
-                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_PAYMENT_GATEWAY)); ?>" class="button"><?php esc_html_e('Manage Gateways', 'control-suite-toolkit-by-kazeem'); ?></a>
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_PAYMENT_GATEWAY)); ?>" class="button"><?php esc_html_e('Manage Gateways', 'kazeem-payment-order-controls-for-woocommerce'); ?></a>
                     </p>
                 </div>
             </div>
             
             <!-- Recent Activity -->
             <div style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 5px; margin-top: 20px;">
-                <h2><span class="dashicons dashicons-clock" style="color: #2271b1;"></span> <?php esc_html_e('Recent Event Logs', 'control-suite-toolkit-by-kazeem'); ?></h2>
+                <h2><span class="dashicons dashicons-clock" style="color: #2271b1;"></span> <?php esc_html_e('Recent Event Logs', 'kazeem-payment-order-controls-for-woocommerce'); ?></h2>
                 <?php if (!empty($recentLogs)): ?>
                 <table class="wp-list-table widefat fixed striped">
                     <thead>
                         <tr>
-                            <th><?php esc_html_e('ID', 'control-suite-toolkit-by-kazeem'); ?></th>
-                            <th><?php esc_html_e('IP Address', 'control-suite-toolkit-by-kazeem'); ?></th>
-                            <th><?php esc_html_e('Status', 'control-suite-toolkit-by-kazeem'); ?></th>
-                            <th><?php esc_html_e('Created At', 'control-suite-toolkit-by-kazeem'); ?></th>
+                            <th><?php esc_html_e('ID', 'kazeem-payment-order-controls-for-woocommerce'); ?></th>
+                            <th><?php esc_html_e('IP Address', 'kazeem-payment-order-controls-for-woocommerce'); ?></th>
+                            <th><?php esc_html_e('Status', 'kazeem-payment-order-controls-for-woocommerce'); ?></th>
+                            <th><?php esc_html_e('Created At', 'kazeem-payment-order-controls-for-woocommerce'); ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -430,7 +435,7 @@ class Control_Suite_Toolkit {
                     </tbody>
                 </table>
                 <?php else: ?>
-                <p><?php esc_html_e('No recent logs found.', 'control-suite-toolkit-by-kazeem'); ?></p>
+                <p><?php esc_html_e('No recent logs found.', 'kazeem-payment-order-controls-for-woocommerce'); ?></p>
                 <?php endif; ?>
             </div>
         </div>
@@ -451,23 +456,23 @@ class Control_Suite_Toolkit {
         
         ?>
         <div class="wrap">
-            <h1><span class="dashicons dashicons-list-view"></span> <?php esc_html_e('Shipping Event Logs', 'control-suite-toolkit-by-kazeem'); ?></h1>
+            <h1><span class="dashicons dashicons-list-view"></span> <?php esc_html_e('Shipping Event Logs', 'kazeem-payment-order-controls-for-woocommerce'); ?></h1>
             
             <div class="notice notice-info">
-                <p><strong><?php esc_html_e('Current Webhook URL:', 'control-suite-toolkit-by-kazeem'); ?></strong> <code><?php echo esc_url($fullUrl); ?></code></p>
+                <p><strong><?php esc_html_e('Current Webhook URL:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <code><?php echo esc_url($fullUrl); ?></code></p>
             </div>
             
             <form method="post" action="options.php">
                 <?php
                 settings_fields($this->optionName);
                 do_settings_sections(self::PAGE_DASHBOARD);
-                submit_button(__('Save Settings', 'control-suite-toolkit-by-kazeem'));
+                submit_button(__('Save Settings', 'kazeem-payment-order-controls-for-woocommerce'));
                 ?>
             </form>
             
             <hr>
             
-            <h2><?php esc_html_e('Recent Logs', 'control-suite-toolkit-by-kazeem'); ?></h2>
+            <h2><?php esc_html_e('Recent Logs', 'kazeem-payment-order-controls-for-woocommerce'); ?></h2>
             <?php $this->renderLogsTable(); ?>
         </div>
         <?php
@@ -481,7 +486,7 @@ class Control_Suite_Toolkit {
         
         $tableName = $wpdb->prefix . $this->logTable;
         $cache_key = 'recent_logs_20';
-        $cache_group = 'control_suite_toolkit_logs';
+        $cache_group = 'kazeem_payment_order_controls_logs';
         
         $logs = wp_cache_get( $cache_key, $cache_group );
         
@@ -492,7 +497,7 @@ class Control_Suite_Toolkit {
         }
         
         if (empty($logs)) {
-            echo '<p>' . esc_html__('No logs found yet.', 'control-suite-toolkit-by-kazeem') . '</p>';
+            echo '<p>' . esc_html__('No logs found yet.', 'kazeem-payment-order-controls-for-woocommerce') . '</p>';
             return;
         }
         
@@ -581,7 +586,7 @@ class Control_Suite_Toolkit {
     }
     
     public function addSettingsLink($links) {
-        $settingsLink = '<a href="' . esc_url(admin_url('admin.php?page=' . self::PAGE_DASHBOARD)) . '">' . esc_html__('Settings', 'control-suite-toolkit-by-kazeem') . '</a>';
+        $settingsLink = '<a href="' . esc_url(admin_url('admin.php?page=' . self::PAGE_DASHBOARD)) . '">' . esc_html__('Settings', 'kazeem-payment-order-controls-for-woocommerce') . '</a>';
         array_unshift($links, $settingsLink);
         return $links;
     }
@@ -592,7 +597,7 @@ class Control_Suite_Toolkit {
         }
         
         // Handle form submission
-        if ( isset( $_POST['cst_order_control_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['cst_order_control_nonce'] ) ), 'cst_order_control_save' ) ) {
+        if ( isset( $_POST['kpoc_order_control_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['kpoc_order_control_nonce'] ) ), 'kpoc_order_control_save' ) ) {
             $this->handleOrderControlSubmission();
         }
         
@@ -608,11 +613,11 @@ class Control_Suite_Toolkit {
             <h1><span class="dashicons dashicons-cart"></span> <?php echo esc_html(self::LABEL_ORDER_CONTROL); ?> Settings</h1>
             
             <div class="notice notice-info">
-                <p><strong><?php esc_html_e('Current Status:', 'control-suite-toolkit-by-kazeem'); ?></strong> <span style="color: <?php echo esc_attr($stats['current_status'] === 'active' ? 'green' : 'red'); ?>; font-weight: bold;"><?php echo esc_html(ucfirst($stats['current_status'])); ?></span></p>
+                <p><strong><?php esc_html_e('Current Status:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <span style="color: <?php echo esc_attr($stats['current_status'] === 'active' ? 'green' : 'red'); ?>; font-weight: bold;"><?php echo esc_html(ucfirst($stats['current_status'])); ?></span></p>
             </div>
             
             <form method="post" action="">
-                <?php wp_nonce_field('cst_order_control_save', 'cst_order_control_nonce'); ?>
+                <?php wp_nonce_field('kpoc_order_control_save', 'kpoc_order_control_nonce'); ?>
                 
                 <h2>General Settings</h2>
                 <table class="form-table">
@@ -739,7 +744,7 @@ class Control_Suite_Toolkit {
                         <th scope="row">Redirect URL</th>
                         <td>
                             <input type="url" name="redirect_url" value="<?php echo esc_attr($settings['redirect_url']); ?>" class="large-text" placeholder="<?php echo esc_url(home_url()); ?>" />
-                            <p class="description"><?php esc_html_e('Redirect customers to this URL when they try to access checkout (leave empty for homepage)', 'control-suite-toolkit-by-kazeem'); ?></p>
+                            <p class="description"><?php esc_html_e('Redirect customers to this URL when they try to access checkout (leave empty for homepage)', 'kazeem-payment-order-controls-for-woocommerce'); ?></p>
                         </td>
                     </tr>
                     
@@ -752,7 +757,7 @@ class Control_Suite_Toolkit {
                     </tr>
                 </table>
                 
-                <?php submit_button(__('Save Settings', 'control-suite-toolkit-by-kazeem')); ?>
+                <?php submit_button(__('Save Settings', 'kazeem-payment-order-controls-for-woocommerce')); ?>
             </form>
             
             <script>
@@ -783,7 +788,7 @@ class Control_Suite_Toolkit {
      * Handle Order Control form submission
      */
     private function handleOrderControlSubmission() {
-        if ( ! isset( $_POST['cst_order_control_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['cst_order_control_nonce'] ) ), 'cst_order_control_save' ) ) {
+        if ( ! isset( $_POST['kpoc_order_control_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['kpoc_order_control_nonce'] ) ), 'kpoc_order_control_save' ) ) {
             return;
         }
 
@@ -803,7 +808,7 @@ class Control_Suite_Toolkit {
         );
 
         $this->orderControl->updateSettings( $settings );
-        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved successfully!', 'control-suite-toolkit-by-kazeem' ) . '</p></div>';
+        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved successfully!', 'kazeem-payment-order-controls-for-woocommerce' ) . '</p></div>';
     }
     
     /**
@@ -825,7 +830,7 @@ class Control_Suite_Toolkit {
         }
         
         // Handle add/edit rule submission
-        if ( isset( $_POST['cst_payment_gateway_rule_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['cst_payment_gateway_rule_nonce'] ) ), 'cst_payment_gateway_rule_save' ) ) {
+        if ( isset( $_POST['kpoc_payment_gateway_rule_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['kpoc_payment_gateway_rule_nonce'] ) ), 'kpoc_payment_gateway_rule_save' ) ) {
             $this->handlePaymentGatewayRuleSubmission();
         }
         
@@ -847,9 +852,9 @@ class Control_Suite_Toolkit {
             
             <div class="notice notice-info">
                 <p>
-                    <strong><?php esc_html_e('Total Rules:', 'control-suite-toolkit-by-kazeem'); ?></strong> <?php echo esc_html($stats['total_rules']); ?> | 
-                    <strong><?php esc_html_e('Active Currencies:', 'control-suite-toolkit-by-kazeem'); ?></strong> <?php echo esc_html($stats['active_currencies']); ?> | 
-                    <strong><?php esc_html_e('Available Gateways:', 'control-suite-toolkit-by-kazeem'); ?></strong> <?php echo esc_html($stats['available_gateways']); ?>
+                    <strong><?php esc_html_e('Total Rules:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <?php echo esc_html($stats['total_rules']); ?> | 
+                    <strong><?php esc_html_e('Active Currencies:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <?php echo esc_html($stats['active_currencies']); ?> | 
+                    <strong><?php esc_html_e('Available Gateways:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <?php echo esc_html($stats['available_gateways']); ?>
                 </p>
             </div>
             
@@ -859,7 +864,7 @@ class Control_Suite_Toolkit {
                     <h2><?php echo ( isset( $_GET['action'] ) && $_GET['action'] === 'add' ) ? 'Add New Rule' : 'Edit Rule'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?></h2>
                     
                     <form method="post" action="">
-                        <?php wp_nonce_field('cst_payment_gateway_rule_save', 'cst_payment_gateway_rule_nonce'); ?>
+                        <?php wp_nonce_field('kpoc_payment_gateway_rule_save', 'kpoc_payment_gateway_rule_nonce'); ?>
                         <?php if ($edit_rule_id !== null && isset( $_GET['action'] ) && $_GET['action'] === 'edit'): // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
                             <input type="hidden" name="rule_id" value="<?php echo esc_attr($edit_rule_id); ?>" />
                         <?php endif; ?>
@@ -918,14 +923,14 @@ class Control_Suite_Toolkit {
                         
                         <p class="submit">
                             <input type="submit" name="submit" class="button button-primary" value="Save Rule" />
-                            <a href="<?php echo esc_url(admin_url('admin.php?page=control-suite-toolkit-by-kazeem-payment-gateway')); ?>" class="button">Cancel</a>
+                            <a href="<?php echo esc_url(admin_url('admin.php?page=kazeem-payment-order-controls-for-woocommerce-payment-gateway')); ?>" class="button">Cancel</a>
                         </p>
                     </form>
                 </div>
             <?php else: ?>
                 <!-- Rules List Table -->
                 <p>
-                    <a href="<?php echo esc_url(admin_url('admin.php?page=control-suite-toolkit-by-kazeem-payment-gateway&action=add')); ?>" class="button button-primary">Add New Rule</a>
+                    <a href="<?php echo esc_url(admin_url('admin.php?page=kazeem-payment-order-controls-for-woocommerce-payment-gateway&action=add')); ?>" class="button button-primary">Add New Rule</a>
                 </p>
                 
                 <?php if (!empty($settings['rules'])): ?>
@@ -966,15 +971,15 @@ class Control_Suite_Toolkit {
                             <td>
                                 <?php 
                                 $is_enabled = !isset($rule['enabled']) || $rule['enabled'];
-                                echo $is_enabled ? '<span style="color: green;">●</span> ' . esc_html__('Enabled', 'control-suite-toolkit-by-kazeem') : '<span style="color: red;">●</span> ' . esc_html__('Disabled', 'control-suite-toolkit-by-kazeem');
+                                echo $is_enabled ? '<span style="color: green;">●</span> ' . esc_html__('Enabled', 'kazeem-payment-order-controls-for-woocommerce') : '<span style="color: red;">●</span> ' . esc_html__('Disabled', 'kazeem-payment-order-controls-for-woocommerce');
                                 ?>
                             </td>
                             <td>
-                                <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=control-suite-toolkit-by-kazeem-payment-gateway&action=edit&rule_id=' . $index), 'edit_rule')); ?>" class="button button-small">Edit</a>
-                                <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=control-suite-toolkit-by-kazeem-payment-gateway&action=toggle&rule_id=' . $index), 'toggle_rule')); ?>" class="button button-small">
+                                <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=kazeem-payment-order-controls-for-woocommerce-payment-gateway&action=edit&rule_id=' . $index), 'edit_rule')); ?>" class="button button-small">Edit</a>
+                                <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=kazeem-payment-order-controls-for-woocommerce-payment-gateway&action=toggle&rule_id=' . $index), 'toggle_rule')); ?>" class="button button-small">
                                     <?php echo $is_enabled ? 'Disable' : 'Enable'; ?>
                                 </a>
-                                <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=control-suite-toolkit-by-kazeem-payment-gateway&action=delete&rule_id=' . $index), 'delete_rule')); ?>" 
+                                <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=kazeem-payment-order-controls-for-woocommerce-payment-gateway&action=delete&rule_id=' . $index), 'delete_rule')); ?>" 
                                    class="button button-small" 
                                    onclick="return confirm('Are you sure you want to delete this rule?');">Delete</a>
                             </td>
@@ -984,7 +989,7 @@ class Control_Suite_Toolkit {
                 </table>
                 <?php else: ?>
                 <div class="notice notice-warning">
-                    <p>No payment gateway rules configured yet. <a href="<?php echo esc_url(admin_url('admin.php?page=control-suite-toolkit-by-kazeem-payment-gateway&action=add')); ?>">Add your first rule</a>.</p>
+                    <p>No payment gateway rules configured yet. <a href="<?php echo esc_url(admin_url('admin.php?page=kazeem-payment-order-controls-for-woocommerce-payment-gateway&action=add')); ?>">Add your first rule</a>.</p>
                 </div>
                 <?php endif; ?>
             <?php endif; ?>
@@ -1013,7 +1018,7 @@ class Control_Suite_Toolkit {
             unset( $settings['rules'][ $rule_id ] );
             $settings['rules'] = array_values( $settings['rules'] ); // Reindex array
             $this->paymentGatewayControl->updateSettings( $settings );
-            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Rule deleted successfully!', 'control-suite-toolkit-by-kazeem' ) . '</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Rule deleted successfully!', 'kazeem-payment-order-controls-for-woocommerce' ) . '</p></div>';
         }
     }
 
@@ -1030,7 +1035,7 @@ class Control_Suite_Toolkit {
         if ( isset( $settings['rules'][ $rule_id ] ) ) {
             $settings['rules'][ $rule_id ]['enabled'] = ! isset( $settings['rules'][ $rule_id ]['enabled'] ) || $settings['rules'][ $rule_id ]['enabled'] ? false : true;
             $this->paymentGatewayControl->updateSettings( $settings );
-            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Rule status updated!', 'control-suite-toolkit-by-kazeem' ) . '</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Rule status updated!', 'kazeem-payment-order-controls-for-woocommerce' ) . '</p></div>';
         }
     }
 
@@ -1038,7 +1043,7 @@ class Control_Suite_Toolkit {
      * Handle payment gateway rule form submission
      */
     private function handlePaymentGatewayRuleSubmission() {
-        if ( ! isset( $_POST['cst_payment_gateway_rule_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['cst_payment_gateway_rule_nonce'] ) ), 'cst_payment_gateway_rule_save' ) ) {
+        if ( ! isset( $_POST['kpoc_payment_gateway_rule_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['kpoc_payment_gateway_rule_nonce'] ) ), 'kpoc_payment_gateway_rule_save' ) ) {
             return;
         }
 
@@ -1064,14 +1069,14 @@ class Control_Suite_Toolkit {
         }
 
         $this->paymentGatewayControl->updateSettings( $settings );
-        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Rule saved successfully!', 'control-suite-toolkit-by-kazeem' ) . '</p></div>';
+        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Rule saved successfully!', 'kazeem-payment-order-controls-for-woocommerce' ) . '</p></div>';
     }
     
     /**
      * AJAX handler to get log details
      */
     public function ajaxGetLogDetails() {
-        check_ajax_referer('cst_event_logs', 'nonce');
+        check_ajax_referer('kpoc_event_logs', 'nonce');
         
         if (!current_user_can('manage_options')) {
             wp_send_json_error('Unauthorized');
@@ -1088,7 +1093,7 @@ class Control_Suite_Toolkit {
         global $wpdb;
         $tableName = $wpdb->prefix . $this->logTable;
         $cache_key = 'log_detail_' . $logId;
-        $cache_group = 'control_suite_toolkit_logs';
+        $cache_group = 'kazeem_payment_order_controls_logs';
         
         $log = wp_cache_get( $cache_key, $cache_group );
         
@@ -1195,7 +1200,7 @@ class Control_Suite_Toolkit {
         }
         
         // Hook for custom actions
-        do_action('control_suite_toolkit_shipping_event_received', $data);
+        do_action('kazeem_payment_order_controls_shipping_event_received', $data);
         
         return array(
             'order_id' => $orderId,
@@ -1228,9 +1233,9 @@ class Control_Suite_Toolkit {
         $insert_id = $wpdb->insert_id;
         
         // Clear related caches
-        wp_cache_delete( 'total_logs', 'control_suite_toolkit_stats' );
-        wp_cache_delete( 'recent_logs', 'control_suite_toolkit_stats' );
-        wp_cache_delete( 'recent_logs_20', 'control_suite_toolkit_logs' );
+        wp_cache_delete( 'total_logs', 'kazeem_payment_order_controls_stats' );
+        wp_cache_delete( 'recent_logs', 'kazeem_payment_order_controls_stats' );
+        wp_cache_delete( 'recent_logs_20', 'kazeem_payment_order_controls_logs' );
         
         return $insert_id;
     }
@@ -1254,11 +1259,11 @@ class Control_Suite_Toolkit {
         );
         
         // Clear related caches
-        wp_cache_delete( 'success_logs', 'control_suite_toolkit_stats' );
-        wp_cache_delete( 'error_logs', 'control_suite_toolkit_stats' );
-        wp_cache_delete( 'recent_logs', 'control_suite_toolkit_stats' );
-        wp_cache_delete( 'recent_logs_20', 'control_suite_toolkit_logs' );
-        wp_cache_delete( 'log_detail_' . $logId, 'control_suite_toolkit_logs' );
+        wp_cache_delete( 'success_logs', 'kazeem_payment_order_controls_stats' );
+        wp_cache_delete( 'error_logs', 'kazeem_payment_order_controls_stats' );
+        wp_cache_delete( 'recent_logs', 'kazeem_payment_order_controls_stats' );
+        wp_cache_delete( 'recent_logs_20', 'kazeem_payment_order_controls_logs' );
+        wp_cache_delete( 'log_detail_' . $logId, 'kazeem_payment_order_controls_logs' );
     }
     
     private function getClientIp() {
@@ -1280,12 +1285,12 @@ class Control_Suite_Toolkit {
         
         // Check if table exists (cached for 24 hours as schema doesn't change often)
         $cache_key = 'table_exists_' . $tableName;
-        $exists = wp_cache_get( $cache_key, 'control_suite_toolkit_schema' );
+        $exists = wp_cache_get( $cache_key, 'kazeem_payment_order_controls_schema' );
         
         if ( false === $exists ) {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $exists = $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $tableName ) );
-            wp_cache_set( $cache_key, $exists, 'control_suite_toolkit_schema', DAY_IN_SECONDS );
+            wp_cache_set( $cache_key, $exists, 'kazeem_payment_order_controls_schema', DAY_IN_SECONDS );
         }
 
         if ($exists != $tableName) {
@@ -1318,31 +1323,31 @@ class Control_Suite_Toolkit {
         dbDelta($sql);
         
         // Clear table existence cache
-        wp_cache_delete( 'table_exists_' . $tableName, 'control_suite_toolkit_schema' );
+        wp_cache_delete( 'table_exists_' . $tableName, 'kazeem_payment_order_controls_schema' );
     }
 }
 } // End if class_exists check
 
 // Initialize the plugin only once
-if (!function_exists('control_suite_toolkit_init')) {
-function control_suite_toolkit_init() {
+if (!function_exists('kazeem_payment_order_controls_init')) {
+function kazeem_payment_order_controls_init() {
     // Check if WooCommerce is active
     if (!class_exists('WooCommerce')) {
         add_action('admin_notices', function() {
             ?>
             <div class="notice notice-error is-dismissible">
-                <p><?php esc_html_e('Control Suite Toolkit requires WooCommerce to be installed and active.', 'control-suite-toolkit-by-kazeem'); ?></p>
+                <p><?php esc_html_e('Kazeem Payment & Order Controls requires WooCommerce to be installed and active.', 'kazeem-payment-order-controls-for-woocommerce'); ?></p>
             </div>
             <?php
         });
         return;
     }
 
-    if (!isset($GLOBALS['Control_Suite_ToolkitInstance']) && class_exists('Control_Suite_Toolkit')) {
-        $GLOBALS['Control_Suite_ToolkitInstance'] = new Control_Suite_Toolkit();
+    if (!isset($GLOBALS['Kazeem_Payment_Order_ControlsInstance']) && class_exists('Kazeem_Payment_Order_Controls')) {
+        $GLOBALS['Kazeem_Payment_Order_ControlsInstance'] = new Kazeem_Payment_Order_Controls();
     }
 }
 }
 
 // Always run initialization on plugins_loaded
-add_action('plugins_loaded', 'control_suite_toolkit_init');
+add_action('plugins_loaded', 'kazeem_payment_order_controls_init');

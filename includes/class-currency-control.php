@@ -5,26 +5,26 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Class Control_Suite_Toolkit_Currency_Control
+ * Class Kazeem_Payment_Order_Controls_Currency_Control
  *
  * Handles currency switching, rates, and product-specific pricing.
  */
-class Control_Suite_Toolkit_Currency_Control {
+class Kazeem_Payment_Order_Controls_Currency_Control {
 
     /**
      * The single instance of the class.
      *
-     * @var Control_Suite_Toolkit_Currency_Control
+     * @var Kazeem_Payment_Order_Controls_Currency_Control
      */
     protected static $_instance = null;
 
     /**
-     * Main Control_Suite_Toolkit_Currency_Control Instance.
+     * Main Kazeem_Payment_Order_Controls_Currency_Control Instance.
      *
-     * Ensures only one instance of Control_Suite_Toolkit_Currency_Control is loaded or can be loaded.
+     * Ensures only one instance of Kazeem_Payment_Order_Controls_Currency_Control is loaded or can be loaded.
      *
      * @static
-     * @return Control_Suite_Toolkit_Currency_Control - Main instance.
+     * @return Kazeem_Payment_Order_Controls_Currency_Control - Main instance.
      */
     public static function instance() {
         if (is_null(self::$_instance)) {
@@ -33,11 +33,11 @@ class Control_Suite_Toolkit_Currency_Control {
         return self::$_instance;
     }
 
-    private $option_name = 'control_suite_toolkit_currency_settings';
+    private $option_name = 'kazeem_payment_order_controls_currency_settings';
     private $settings;
 
     /**
-     * Control_Suite_Toolkit_Currency_Control Constructor.
+     * Kazeem_Payment_Order_Controls_Currency_Control Constructor.
      */
     public function __construct() {
         add_action('admin_init', array($this, 'registerSettings'));
@@ -144,7 +144,7 @@ class Control_Suite_Toolkit_Currency_Control {
      */
     public function add_product_currency_metabox() {
         add_meta_box(
-            'control-suite-toolkit-by-kazeem-currency-prices',
+            'kazeem-payment-order-controls-for-woocommerce-currency-prices',
             'Currency Pricing',
             array($this, 'render_product_currency_metabox'),
             'product',
@@ -159,7 +159,7 @@ class Control_Suite_Toolkit_Currency_Control {
      * @param WP_Post $post
      */
     public function render_product_currency_metabox($post) {
-        wp_nonce_field('control_suite_toolkit_save_currency_prices', 'control_suite_toolkit_currency_prices_nonce');
+        wp_nonce_field('kazeem_payment_order_controls_save_currency_prices', 'kazeem_payment_order_controls_currency_prices_nonce');
 
         $prices = get_post_meta($post->ID, '_currency_prices', true);
         if (!is_array($prices)) {
@@ -186,7 +186,7 @@ class Control_Suite_Toolkit_Currency_Control {
      * @param int $post_id
      */
     public function save_product_currency_prices($post_id) {
-        if (!isset($_POST['control_suite_toolkit_currency_prices_nonce']) || !wp_verify_nonce(sanitize_key(wp_unslash($_POST['control_suite_toolkit_currency_prices_nonce'])), 'control_suite_toolkit_save_currency_prices')) {
+        if (!isset($_POST['kazeem_payment_order_controls_currency_prices_nonce']) || !wp_verify_nonce(sanitize_key(wp_unslash($_POST['kazeem_payment_order_controls_currency_prices_nonce'])), 'kazeem_payment_order_controls_save_currency_prices')) {
             return;
         }
 
@@ -226,7 +226,7 @@ class Control_Suite_Toolkit_Currency_Control {
             $currency = sanitize_text_field(wp_unslash($_GET['currency']));
             $available_currencies = $this->get_available_currencies();
             if (array_key_exists($currency, $available_currencies)) {
-                $_SESSION['control_suite_toolkit_currency'] = $currency;
+                $_SESSION['kazeem_payment_order_controls_currency'] = $currency;
             }
         }
         // phpcs:enable WordPress.Security.NonceVerification.Recommended
@@ -238,8 +238,8 @@ class Control_Suite_Toolkit_Currency_Control {
      * @return string
      */
     public function get_current_currency() {
-        if (isset($_SESSION['control_suite_toolkit_currency'])) {
-            $currency = sanitize_text_field($_SESSION['control_suite_toolkit_currency']);
+        if (isset($_SESSION['kazeem_payment_order_controls_currency'])) {
+            $currency = sanitize_text_field($_SESSION['kazeem_payment_order_controls_currency']);
             $available_currencies = $this->get_available_currencies();
             if (array_key_exists($currency, $available_currencies)) {
                 return $currency;
@@ -289,14 +289,14 @@ class Control_Suite_Toolkit_Currency_Control {
             'currency_control_general',
             'General Settings',
             null,
-            'control-suite-toolkit-by-kazeem-currency-control'
+            'kazeem-payment-order-controls-for-woocommerce-currency-control'
         );
 
         add_settings_field(
             'enable_currency_switcher',
             'Enable Currency Switcher',
             array($this, 'renderEnableField'),
-            'control-suite-toolkit-by-kazeem-currency-control',
+            'kazeem-payment-order-controls-for-woocommerce-currency-control',
             'currency_control_general'
         );
 
@@ -304,7 +304,7 @@ class Control_Suite_Toolkit_Currency_Control {
             'default_currency',
             'Default Currency',
             array($this, 'renderDefaultCurrencyField'),
-            'control-suite-toolkit-by-kazeem-currency-control',
+            'kazeem-payment-order-controls-for-woocommerce-currency-control',
             'currency_control_general'
         );
 
@@ -312,14 +312,14 @@ class Control_Suite_Toolkit_Currency_Control {
             'currency_control_rates',
             'Currency Rates',
             null,
-            'control-suite-toolkit-by-kazeem-currency-control'
+            'kazeem-payment-order-controls-for-woocommerce-currency-control'
         );
 
         add_settings_field(
             'currencies',
             'Currencies',
             array($this, 'renderCurrenciesField'),
-            'control-suite-toolkit-by-kazeem-currency-control',
+            'kazeem-payment-order-controls-for-woocommerce-currency-control',
             'currency_control_rates'
         );
     }
@@ -334,7 +334,7 @@ class Control_Suite_Toolkit_Currency_Control {
             <form method="post" action="options.php">
                 <?php
                 settings_fields($this->option_name);
-                do_settings_sections('control-suite-toolkit-by-kazeem-currency-control');
+                do_settings_sections('kazeem-payment-order-controls-for-woocommerce-currency-control');
                 submit_button();
                 ?>
             </form>
@@ -381,7 +381,7 @@ class Control_Suite_Toolkit_Currency_Control {
         }
         
         // Pass data to JS
-        wp_localize_script('control-suite-toolkit-by-kazeem-admin', 'Control_Suite_Toolkit_Currency_Data', $currency_options);
+        wp_localize_script('kazeem-payment-order-controls-for-woocommerce-admin', 'Kazeem_Payment_Order_Controls_Currency_Data', $currency_options);
         
         ?>
         <table id="currency-rates-table" class="wp-list-table widefat fixed striped">

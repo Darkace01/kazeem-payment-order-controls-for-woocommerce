@@ -12,12 +12,12 @@ jQuery(document).ready(function($) {
         
         // Make AJAX request
         $.ajax({
-            url: Control_Suite_Toolkit_Admin.ajax_url,
+            url: Kazeem_Payment_Order_Controls_Admin.ajax_url,
             type: 'POST',
             data: {
-                action: 'control_suite_toolkit_get_log_details',
+                action: 'kazeem_payment_order_controls_get_log_details',
                 log_id: logId,
-                nonce: Control_Suite_Toolkit_Admin.nonce
+                nonce: Kazeem_Payment_Order_Controls_Admin.nonce
             },
             success: function(response) {
                 if (response.success) {
@@ -83,8 +83,8 @@ jQuery(document).ready(function($) {
 
     function getCurrencyOptions() {
         let options = '<option value="">Select Currency</option>';
-        if (typeof Control_Suite_Toolkit_Currency_Data !== 'undefined') {
-            $.each(Control_Suite_Toolkit_Currency_Data, function(code, data) {
+        if (typeof Kazeem_Payment_Order_Controls_Currency_Data !== 'undefined') {
+            $.each(Kazeem_Payment_Order_Controls_Currency_Data, function(code, data) {
                 options += `<option value="${code}" data-symbol="${data.symbol}">${data.name} (${code})</option>`;
             });
         }

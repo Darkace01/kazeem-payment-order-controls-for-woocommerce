@@ -8,9 +8,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Control_Suite_Toolkit_Payment_Gateway_Control {
+class Kazeem_Payment_Order_Controls_Payment_Gateway_Control {
     
-    private $optionName = 'cst_payment_gateway_settings';
+    private $optionName = 'kpoc_payment_gateway_settings';
     
     public function __construct() {
         add_filter('woocommerce_available_payment_gateways', array($this, 'filterGatewaysByCurrency'), 999);
@@ -25,7 +25,7 @@ class Control_Suite_Toolkit_Payment_Gateway_Control {
         }
         
         $settings = $this->getSettings();
-        $currentCurrency = Control_Suite_Toolkit_Currency_Control::instance()->get_current_currency();
+        $currentCurrency = Kazeem_Payment_Order_Controls_Currency_Control::instance()->get_current_currency();
         
         if (empty($settings['rules']) || !is_array($settings['rules'])) {
             return $availableGateways;
@@ -83,7 +83,7 @@ class Control_Suite_Toolkit_Payment_Gateway_Control {
      */
     public function getActiveCurrencies() {
         $all_currencies = get_woocommerce_currencies();
-        $active_currencies_codes = Control_Suite_Toolkit_Currency_Control::instance()->get_available_currencies();
+        $active_currencies_codes = Kazeem_Payment_Order_Controls_Currency_Control::instance()->get_available_currencies();
         
         $active = array();
         foreach ($active_currencies_codes as $code) {
