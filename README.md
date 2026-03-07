@@ -1,7 +1,7 @@
 === Kazeem Payment & Order Controls for WooCommerce ===
 Contributors: kazeemquadri
 Tags: woocommerce, order control, payment gateway, shipping, webhooks
-Plugin URI: https://github.com/Darkace01/kazeem-payment-order-controls-for-woocommerce
+Plugin URI: https://github.com/Darkace01/commerce-control-suite
 Requires at least: 6.2
 Tested up to: 6.9
 Stable tag: 1.2.7
@@ -63,7 +63,7 @@ Kazeem Payment & Order Controls for WooCommerce is a comprehensive WordPress plu
 
 == Installation ==
 
-1. Upload the plugin files to `/wp-content/plugins/kazeem-payment-order-controls-for-woocommerce/`
+1. Upload the plugin files to `/wp-content/plugins/commerce-control-suite/`
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Navigate to **Kazeem Payment & Order Controls** in the WordPress admin menu
 4. Configure your settings in each section
@@ -146,7 +146,7 @@ You can implement additional security by:
 ### 1.2.7
 
 - Renamed plugin to "Kazeem Payment & Order Controls for WooCommerce"
-- Updated text domain to `kazeem-payment-order-controls-for-woocommerce`
+- Updated text domain to `commerce-control-suite`
 - Added advanced currency switching features.
 - Fixed "Trying to access array offset on null" warning on fresh installations.
 - Added strict dependency check for WooCommerce to prevent fatal errors.

@@ -137,7 +137,7 @@ class Kazeem_Payment_Order_Controls_Order_Control {
         if (!$this->areOrdersEnabled()) {
             $settings = $this->getSettings();
             $message = isset($settings['disabled_message']) ? $settings['disabled_message'] :
-                       __('Orders are currently disabled. Please try again later.', 'kazeem-payment-order-controls-for-woocommerce');
+                       __('Orders are currently disabled. Please try again later.', 'commerce-control-suite');
             
             wc_add_notice(esc_html($message), 'error');
         }
@@ -153,7 +153,7 @@ class Kazeem_Payment_Order_Controls_Order_Control {
         if (!$this->areOrdersEnabled()) {
             $settings = $this->getSettings();
             $message = isset($settings['disabled_message']) ? $settings['disabled_message'] :
-                       __('Orders are currently disabled. Please try again later.', 'kazeem-payment-order-controls-for-woocommerce');
+                       __('Orders are currently disabled. Please try again later.', 'commerce-control-suite');
             
             $errors->add('orders_disabled', esc_html($message));
         }
@@ -182,7 +182,7 @@ class Kazeem_Payment_Order_Controls_Order_Control {
         if (!$this->canOrderProduct($product->get_id())) {
             $settings = $this->getSettings();
             $message = isset($settings['disabled_message']) ? $settings['disabled_message'] :
-                       __('Orders are currently disabled. Please try again later.', 'kazeem-payment-order-controls-for-woocommerce');
+                       __('Orders are currently disabled. Please try again later.', 'commerce-control-suite');
             
             echo '<div class="woocommerce-info" style="margin: 20px 0;">' . esc_html($message) . '</div>';
         }
@@ -219,7 +219,7 @@ class Kazeem_Payment_Order_Controls_Order_Control {
             'restricted_categories' => array(),
             'restricted_products' => array(),
             'redirect_url' => '',
-            'disabled_message' => __('Orders are currently disabled. Please try again later.', 'kazeem-payment-order-controls-for-woocommerce')
+            'disabled_message' => __('Orders are currently disabled. Please try again later.', 'commerce-control-suite')
         ));
     }
     
