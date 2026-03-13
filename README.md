@@ -1,5 +1,5 @@
 === Kazeem Payment & Order Controls for WooCommerce ===
-Contributors: kazeemquadri, kazeemquadri01
+Contributors: kazeemquadri01
 Tags: woocommerce, order control, payment gateway, shipping, webhooks
 Plugin URI: https://github.com/Darkace01/kazeem-payment-order-controls-for-woocommerce
 Requires at least: 6.2
