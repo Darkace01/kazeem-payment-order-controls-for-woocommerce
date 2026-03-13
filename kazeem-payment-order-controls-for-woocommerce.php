@@ -1,14 +1,15 @@
 <?php
 /**
  * Plugin Name: Kazeem Payment & Order Controls for WooCommerce
- * Plugin URI: https://github.com/Darkace01/commerce-control-suite
+ * Plugin URI: https://github.com/Darkace01/kazeem-payment-order-controls-for-woocommerce
  * Description: Comprehensive control suite for WooCommerce to manage order restrictions, payment gateway rules, shipping event webhooks, and advanced currency switching.
  * Version: 1.2.7
  * Author: Kazeem Quadri
  * Author URI: https://github.com/Darkace01
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: commerce-control-suite
+ * Text Domain: kazeem-payment-order-controls-for-woocommerce
+ * Requires Plugins: woocommerce
  * Requires at least: 6.2
  * Requires PHP: 7.2
  * WC requires at least: 3.0
@@ -41,11 +42,11 @@ if (!defined('KAZEEM_PAYMENT_ORDER_CONTROLS_PLUGIN_URL')) {
 if (!class_exists('Kazeem_Payment_Order_Controls')) {
 class Kazeem_Payment_Order_Controls {
     
-    const PAGE_DASHBOARD = 'commerce-control-suite';
-    const PAGE_LOGS = 'commerce-control-suite-logs';
-    const PAGE_ORDER_CONTROL = 'commerce-control-suite-order-control';
-    const PAGE_PAYMENT_GATEWAY = 'commerce-control-suite-payment-gateway';
-    const PAGE_CURRENCY_CONTROL = 'commerce-control-suite-currency-control';
+    const PAGE_DASHBOARD = 'kazeem-payment-order-controls-for-woocommerce';
+    const PAGE_LOGS = 'kazeem-payment-order-controls-for-woocommerce-logs';
+    const PAGE_ORDER_CONTROL = 'kazeem-payment-order-controls-for-woocommerce-order-control';
+    const PAGE_PAYMENT_GATEWAY = 'kazeem-payment-order-controls-for-woocommerce-payment-gateway';
+    const PAGE_CURRENCY_CONTROL = 'kazeem-payment-order-controls-for-woocommerce-currency-control';
     
     const LABEL_ORDER_CONTROL = 'Order Control';
     const LABEL_PAYMENT_GATEWAY = 'Payment Gateway';
@@ -101,10 +102,10 @@ class Kazeem_Payment_Order_Controls {
             return;
         }
 
-        wp_enqueue_style('commerce-control-suite-admin', plugins_url('assets/css/admin.css', $this->pluginFile), array(), KAZEEM_PAYMENT_ORDER_CONTROLS_VERSION);
-        wp_enqueue_script('commerce-control-suite-admin', plugins_url('assets/js/admin.js', $this->pluginFile), array('jquery'), KAZEEM_PAYMENT_ORDER_CONTROLS_VERSION, true);
+        wp_enqueue_style('kazeem-payment-order-controls-for-woocommerce-admin', plugins_url('assets/css/admin.css', $this->pluginFile), array(), KAZEEM_PAYMENT_ORDER_CONTROLS_VERSION);
+        wp_enqueue_script('kazeem-payment-order-controls-for-woocommerce-admin', plugins_url('assets/js/admin.js', $this->pluginFile), array('jquery'), KAZEEM_PAYMENT_ORDER_CONTROLS_VERSION, true);
 
-        wp_localize_script('commerce-control-suite-admin', 'Kazeem_Payment_Order_Controls_Admin', array(
+        wp_localize_script('kazeem-payment-order-controls-for-woocommerce-admin', 'Kazeem_Payment_Order_Controls_Admin', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce'    => wp_create_nonce('kpoc_event_logs')
         ));
@@ -131,11 +132,11 @@ class Kazeem_Payment_Order_Controls {
                 'commerce-order-control' => self::PAGE_ORDER_CONTROL,
                 'commerce-payment-gateway' => self::PAGE_PAYMENT_GATEWAY,
                 'commerce-currency-control' => self::PAGE_CURRENCY_CONTROL,
-                'commerce-control-suite' => self::PAGE_DASHBOARD,
-                'commerce-control-suite-logs' => self::PAGE_LOGS,
-                'commerce-control-suite-order-control' => self::PAGE_ORDER_CONTROL,
-                'commerce-control-suite-payment-gateway' => self::PAGE_PAYMENT_GATEWAY,
-                'commerce-control-suite-currency-control' => self::PAGE_CURRENCY_CONTROL,
+                'kazeem-payment-order-controls-for-woocommerce' => self::PAGE_DASHBOARD,
+                'kazeem-payment-order-controls-for-woocommerce-logs' => self::PAGE_LOGS,
+                'kazeem-payment-order-controls-for-woocommerce-order-control' => self::PAGE_ORDER_CONTROL,
+                'kazeem-payment-order-controls-for-woocommerce-payment-gateway' => self::PAGE_PAYMENT_GATEWAY,
+                'kazeem-payment-order-controls-for-woocommerce-currency-control' => self::PAGE_CURRENCY_CONTROL,
                 'control-suite-toolkit-logs' => self::PAGE_LOGS,
                 'control-suite-toolkit-order-control' => self::PAGE_ORDER_CONTROL,
                 'control-suite-toolkit-payment-gateway' => self::PAGE_PAYMENT_GATEWAY,
@@ -254,6 +255,29 @@ class Kazeem_Payment_Order_Controls {
             self::PAGE_DASHBOARD,
             'shipping_event_general'
         );
+
+        add_settings_field(
+            'webhook_secret',
+            'Webhook Secret',
+            array($this, 'renderSecretField'),
+            self::PAGE_DASHBOARD,
+            'shipping_event_general'
+        );
+    }
+    
+    /**
+     * Render secret field
+     */
+    public function renderSecretField() {
+        $settings = get_option($this->optionName, array());
+        $secret = isset($settings['webhook_secret']) ? $settings['webhook_secret'] : '';
+        
+        printf(
+            '<input type="text" name="%s[webhook_secret]" value="%s" class="regular-text" />',
+            esc_attr($this->optionName),
+            esc_attr($secret)
+        );
+        echo '<p class="description">' . esc_html__('Enter a secret key to secure your webhook. If set, you must provide it in the X-KPOC-Secret header.', 'kazeem-payment-order-controls-for-woocommerce') . '</p>';
     }
     
     /**
@@ -266,6 +290,10 @@ class Kazeem_Payment_Order_Controls {
             $sanitized['endpoint_slug'] = sanitize_title($input['endpoint_slug']);
         }
         
+        if (isset($input['webhook_secret'])) {
+            $sanitized['webhook_secret'] = sanitize_text_field($input['webhook_secret']);
+        }
+        
         // Flush rewrite rules after changing endpoint
         flush_rewrite_rules();
         
@@ -276,7 +304,7 @@ class Kazeem_Payment_Order_Controls {
      * Render settings section info
      */
     public function renderSectionInfo() {
-        echo '<p>' . esc_html__('Configure your shipping webhook endpoint settings.', 'commerce-control-suite') . '</p>';
+        echo '<p>' . esc_html__('Configure your shipping webhook endpoint settings.', 'kazeem-payment-order-controls-for-woocommerce') . '</p>';
     }
     
     /**
@@ -295,7 +323,7 @@ class Kazeem_Payment_Order_Controls {
         echo '<p class="description">' . wp_kses(
             sprintf(
                 /* translators: %s: The full URL of the shipping event webhook. */
-                __('Enter the endpoint slug (e.g., "shipping-webhook"). The full URL will be: <br><strong>%s</strong>', 'commerce-control-suite'),
+                __('Enter the endpoint slug (e.g., "shipping-webhook"). The full URL will be: <br><strong>%s</strong>', 'kazeem-payment-order-controls-for-woocommerce'),
                 esc_url($fullUrl)
             ),
             array('br' => array(), 'strong' => array())
@@ -344,65 +372,65 @@ class Kazeem_Payment_Order_Controls {
         
         ?>
         <div class="wrap">
-            <h1><?php esc_html_e('Kazeem Payment & Order Controls - Dashboard', 'commerce-control-suite'); ?></h1>
+            <h1><?php esc_html_e('Kazeem Payment & Order Controls - Dashboard', 'kazeem-payment-order-controls-for-woocommerce'); ?></h1>
             
             <div class="dashboard-widgets" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
                 
                 <!-- Webhook Info -->
                 <div class="dashboard-widget" style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 5px;">
-                    <h2 style="margin-top: 0;"><span class="dashicons dashicons-admin-links" style="color: #2271b1;"></span> <?php esc_html_e('Shipping Webhook', 'commerce-control-suite'); ?></h2>
-                    <p><strong><?php esc_html_e('URL:', 'commerce-control-suite'); ?></strong></p>
+                    <h2 style="margin-top: 0;"><span class="dashicons dashicons-admin-links" style="color: #2271b1;"></span> <?php esc_html_e('Shipping Webhook', 'kazeem-payment-order-controls-for-woocommerce'); ?></h2>
+                    <p><strong><?php esc_html_e('URL:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong></p>
                     <input type="text" value="<?php echo esc_url($fullUrl); ?>" readonly class="large-text" style="background: #f5f5f5;" />
                     <p style="margin-top: 10px;">
-                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_LOGS)); ?>" class="button"><?php esc_html_e('View Logs', 'commerce-control-suite'); ?></a>
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_LOGS)); ?>" class="button"><?php esc_html_e('View Logs', 'kazeem-payment-order-controls-for-woocommerce'); ?></a>
                     </p>
                 </div>
                 
                 <!-- Event Logs Stats -->
                 <div class="dashboard-widget" style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 5px;">
-                    <h2 style="margin-top: 0;"><span class="dashicons dashicons-list-view" style="color: #2271b1;"></span> <?php esc_html_e('Event Logs', 'commerce-control-suite'); ?></h2>
-                    <p><strong><?php esc_html_e('Total:', 'commerce-control-suite'); ?></strong> <?php echo esc_html(number_format($totalLogs)); ?></p>
-                    <p><strong><?php esc_html_e('Success:', 'commerce-control-suite'); ?></strong> <span style="color: green;"><?php echo esc_html(number_format($successLogs)); ?></span></p>
-                    <p><strong><?php esc_html_e('Errors:', 'commerce-control-suite'); ?></strong> <span style="color: red;"><?php echo esc_html(number_format($errorLogs)); ?></span></p>
+                    <h2 style="margin-top: 0;"><span class="dashicons dashicons-list-view" style="color: #2271b1;"></span> <?php esc_html_e('Event Logs', 'kazeem-payment-order-controls-for-woocommerce'); ?></h2>
+                    <p><strong><?php esc_html_e('Total:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <?php echo esc_html(number_format($totalLogs)); ?></p>
+                    <p><strong><?php esc_html_e('Success:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <span style="color: green;"><?php echo esc_html(number_format($successLogs)); ?></span></p>
+                    <p><strong><?php esc_html_e('Errors:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <span style="color: red;"><?php echo esc_html(number_format($errorLogs)); ?></span></p>
                     <p>
-                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_LOGS)); ?>" class="button"><?php esc_html_e('View All Logs', 'commerce-control-suite'); ?></a>
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_LOGS)); ?>" class="button"><?php esc_html_e('View All Logs', 'kazeem-payment-order-controls-for-woocommerce'); ?></a>
                     </p>
                 </div>
                 
                 <!-- Order Control Stats -->
                 <div class="dashboard-widget" style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 5px;">
-                    <h2 style="margin-top: 0;"><span class="dashicons dashicons-cart" style="color: #2271b1;"></span> <?php esc_html_e('Order Control', 'commerce-control-suite'); ?></h2>
-                    <p><strong><?php esc_html_e('Status:', 'commerce-control-suite'); ?></strong> <span style="color: <?php echo esc_attr($orderStats['current_status'] === 'active' ? 'green' : 'red'); ?>; font-weight: bold;"><?php echo esc_html(ucfirst($orderStats['current_status'])); ?></span></p>
-                    <p><strong><?php esc_html_e('Orders Enabled:', 'commerce-control-suite'); ?></strong> <?php echo $orderStats['orders_enabled'] ? esc_html__('Yes', 'commerce-control-suite') : esc_html__('No', 'commerce-control-suite'); ?></p>
-                    <p><strong><?php esc_html_e('Timeframe Enabled:', 'commerce-control-suite'); ?></strong> <?php echo $orderStats['timeframe_enabled'] ? esc_html__('Yes', 'commerce-control-suite') : esc_html__('No', 'commerce-control-suite'); ?></p>
+                    <h2 style="margin-top: 0;"><span class="dashicons dashicons-cart" style="color: #2271b1;"></span> <?php esc_html_e('Order Control', 'kazeem-payment-order-controls-for-woocommerce'); ?></h2>
+                    <p><strong><?php esc_html_e('Status:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <span style="color: <?php echo esc_attr($orderStats['current_status'] === 'active' ? 'green' : 'red'); ?>; font-weight: bold;"><?php echo esc_html(ucfirst($orderStats['current_status'])); ?></span></p>
+                    <p><strong><?php esc_html_e('Orders Enabled:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <?php echo $orderStats['orders_enabled'] ? esc_html__('Yes', 'kazeem-payment-order-controls-for-woocommerce') : esc_html__('No', 'kazeem-payment-order-controls-for-woocommerce'); ?></p>
+                    <p><strong><?php esc_html_e('Timeframe Enabled:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <?php echo $orderStats['timeframe_enabled'] ? esc_html__('Yes', 'kazeem-payment-order-controls-for-woocommerce') : esc_html__('No', 'kazeem-payment-order-controls-for-woocommerce'); ?></p>
                     <p>
-                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_ORDER_CONTROL)); ?>" class="button"><?php esc_html_e('Manage Orders', 'commerce-control-suite'); ?></a>
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_ORDER_CONTROL)); ?>" class="button"><?php esc_html_e('Manage Orders', 'kazeem-payment-order-controls-for-woocommerce'); ?></a>
                     </p>
                 </div>
                 
                 <!-- Payment Gateway Stats -->
                 <div class="dashboard-widget" style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 5px;">
-                    <h2 style="margin-top: 0;"><span class="dashicons dashicons-money-alt" style="color: #2271b1;"></span> <?php esc_html_e('Payment Gateways', 'commerce-control-suite'); ?></h2>
-                    <p><strong><?php esc_html_e('Total Rules:', 'commerce-control-suite'); ?></strong> <?php echo esc_html(number_format($paymentStats['total_rules'])); ?></p>
-                    <p><strong><?php esc_html_e('Active Currencies:', 'commerce-control-suite'); ?></strong> <?php echo esc_html(number_format($paymentStats['active_currencies'])); ?></p>
-                    <p><strong><?php esc_html_e('Available Gateways:', 'commerce-control-suite'); ?></strong> <?php echo esc_html(number_format($paymentStats['available_gateways'])); ?></p>
+                    <h2 style="margin-top: 0;"><span class="dashicons dashicons-money-alt" style="color: #2271b1;"></span> <?php esc_html_e('Payment Gateways', 'kazeem-payment-order-controls-for-woocommerce'); ?></h2>
+                    <p><strong><?php esc_html_e('Total Rules:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <?php echo esc_html(number_format($paymentStats['total_rules'])); ?></p>
+                    <p><strong><?php esc_html_e('Active Currencies:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <?php echo esc_html(number_format($paymentStats['active_currencies'])); ?></p>
+                    <p><strong><?php esc_html_e('Available Gateways:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <?php echo esc_html(number_format($paymentStats['available_gateways'])); ?></p>
                     <p>
-                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_PAYMENT_GATEWAY)); ?>" class="button"><?php esc_html_e('Manage Gateways', 'commerce-control-suite'); ?></a>
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . self::PAGE_PAYMENT_GATEWAY)); ?>" class="button"><?php esc_html_e('Manage Gateways', 'kazeem-payment-order-controls-for-woocommerce'); ?></a>
                     </p>
                 </div>
             </div>
             
             <!-- Recent Activity -->
             <div style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 5px; margin-top: 20px;">
-                <h2><span class="dashicons dashicons-clock" style="color: #2271b1;"></span> <?php esc_html_e('Recent Event Logs', 'commerce-control-suite'); ?></h2>
+                <h2><span class="dashicons dashicons-clock" style="color: #2271b1;"></span> <?php esc_html_e('Recent Event Logs', 'kazeem-payment-order-controls-for-woocommerce'); ?></h2>
                 <?php if (!empty($recentLogs)): ?>
                 <table class="wp-list-table widefat fixed striped">
                     <thead>
                         <tr>
-                            <th><?php esc_html_e('ID', 'commerce-control-suite'); ?></th>
-                            <th><?php esc_html_e('IP Address', 'commerce-control-suite'); ?></th>
-                            <th><?php esc_html_e('Status', 'commerce-control-suite'); ?></th>
-                            <th><?php esc_html_e('Created At', 'commerce-control-suite'); ?></th>
+                            <th><?php esc_html_e('ID', 'kazeem-payment-order-controls-for-woocommerce'); ?></th>
+                            <th><?php esc_html_e('IP Address', 'kazeem-payment-order-controls-for-woocommerce'); ?></th>
+                            <th><?php esc_html_e('Status', 'kazeem-payment-order-controls-for-woocommerce'); ?></th>
+                            <th><?php esc_html_e('Created At', 'kazeem-payment-order-controls-for-woocommerce'); ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -421,7 +449,7 @@ class Kazeem_Payment_Order_Controls {
                     </tbody>
                 </table>
                 <?php else: ?>
-                <p><?php esc_html_e('No recent logs found.', 'commerce-control-suite'); ?></p>
+                <p><?php esc_html_e('No recent logs found.', 'kazeem-payment-order-controls-for-woocommerce'); ?></p>
                 <?php endif; ?>
             </div>
         </div>
@@ -442,23 +470,23 @@ class Kazeem_Payment_Order_Controls {
         
         ?>
         <div class="wrap">
-            <h1><span class="dashicons dashicons-list-view"></span> <?php esc_html_e('Shipping Event Logs', 'commerce-control-suite'); ?></h1>
+            <h1><span class="dashicons dashicons-list-view"></span> <?php esc_html_e('Shipping Event Logs', 'kazeem-payment-order-controls-for-woocommerce'); ?></h1>
             
             <div class="notice notice-info">
-                <p><strong><?php esc_html_e('Current Webhook URL:', 'commerce-control-suite'); ?></strong> <code><?php echo esc_url($fullUrl); ?></code></p>
+                <p><strong><?php esc_html_e('Current Webhook URL:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <code><?php echo esc_url($fullUrl); ?></code></p>
             </div>
             
             <form method="post" action="options.php">
                 <?php
                 settings_fields($this->optionName);
                 do_settings_sections(self::PAGE_DASHBOARD);
-                submit_button(__('Save Settings', 'commerce-control-suite'));
+                submit_button(__('Save Settings', 'kazeem-payment-order-controls-for-woocommerce'));
                 ?>
             </form>
             
             <hr>
             
-            <h2><?php esc_html_e('Recent Logs', 'commerce-control-suite'); ?></h2>
+            <h2><?php esc_html_e('Recent Logs', 'kazeem-payment-order-controls-for-woocommerce'); ?></h2>
             <?php $this->renderLogsTable(); ?>
         </div>
         <?php
@@ -483,7 +511,7 @@ class Kazeem_Payment_Order_Controls {
         }
         
         if (empty($logs)) {
-            echo '<p>' . esc_html__('No logs found yet.', 'commerce-control-suite') . '</p>';
+            echo '<p>' . esc_html__('No logs found yet.', 'kazeem-payment-order-controls-for-woocommerce') . '</p>';
             return;
         }
         
@@ -572,7 +600,7 @@ class Kazeem_Payment_Order_Controls {
     }
     
     public function addSettingsLink($links) {
-        $settingsLink = '<a href="' . esc_url(admin_url('admin.php?page=' . self::PAGE_DASHBOARD)) . '">' . esc_html__('Settings', 'commerce-control-suite') . '</a>';
+        $settingsLink = '<a href="' . esc_url(admin_url('admin.php?page=' . self::PAGE_DASHBOARD)) . '">' . esc_html__('Settings', 'kazeem-payment-order-controls-for-woocommerce') . '</a>';
         array_unshift($links, $settingsLink);
         return $links;
     }
@@ -599,7 +627,7 @@ class Kazeem_Payment_Order_Controls {
             <h1><span class="dashicons dashicons-cart"></span> <?php echo esc_html(self::LABEL_ORDER_CONTROL); ?> Settings</h1>
             
             <div class="notice notice-info">
-                <p><strong><?php esc_html_e('Current Status:', 'commerce-control-suite'); ?></strong> <span style="color: <?php echo esc_attr($stats['current_status'] === 'active' ? 'green' : 'red'); ?>; font-weight: bold;"><?php echo esc_html(ucfirst($stats['current_status'])); ?></span></p>
+                <p><strong><?php esc_html_e('Current Status:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <span style="color: <?php echo esc_attr($stats['current_status'] === 'active' ? 'green' : 'red'); ?>; font-weight: bold;"><?php echo esc_html(ucfirst($stats['current_status'])); ?></span></p>
             </div>
             
             <form method="post" action="">
@@ -730,7 +758,7 @@ class Kazeem_Payment_Order_Controls {
                         <th scope="row">Redirect URL</th>
                         <td>
                             <input type="url" name="redirect_url" value="<?php echo esc_attr($settings['redirect_url']); ?>" class="large-text" placeholder="<?php echo esc_url(home_url()); ?>" />
-                            <p class="description"><?php esc_html_e('Redirect customers to this URL when they try to access checkout (leave empty for homepage)', 'commerce-control-suite'); ?></p>
+                            <p class="description"><?php esc_html_e('Redirect customers to this URL when they try to access checkout (leave empty for homepage)', 'kazeem-payment-order-controls-for-woocommerce'); ?></p>
                         </td>
                     </tr>
                     
@@ -743,29 +771,8 @@ class Kazeem_Payment_Order_Controls {
                     </tr>
                 </table>
                 
-                <?php submit_button(__('Save Settings', 'commerce-control-suite')); ?>
+                <?php submit_button(__('Save Settings', 'kazeem-payment-order-controls-for-woocommerce')); ?>
             </form>
-            
-            <script>
-            jQuery(document).ready(function($) {
-                function toggleRestrictionFields() {
-                    var restrictionType = $('#restriction_type').val();
-                    $('#categories_row, #products_row').hide();
-                    
-                    if (restrictionType === 'categories') {
-                        $('#categories_row').show();
-                    } else if (restrictionType === 'products') {
-                        $('#products_row').show();
-                    }
-                }
-                
-                // Show/hide fields when dropdown changes
-                $('#restriction_type').on('change', toggleRestrictionFields);
-                
-                // Initialize on page load - show fields if needed
-                toggleRestrictionFields();
-            });
-            </script>
         </div>
         <?php
     }
@@ -794,7 +801,7 @@ class Kazeem_Payment_Order_Controls {
         );
 
         $this->orderControl->updateSettings( $settings );
-        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved successfully!', 'commerce-control-suite' ) . '</p></div>';
+        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved successfully!', 'kazeem-payment-order-controls-for-woocommerce' ) . '</p></div>';
     }
     
     /**
@@ -838,9 +845,9 @@ class Kazeem_Payment_Order_Controls {
             
             <div class="notice notice-info">
                 <p>
-                    <strong><?php esc_html_e('Total Rules:', 'commerce-control-suite'); ?></strong> <?php echo esc_html($stats['total_rules']); ?> | 
-                    <strong><?php esc_html_e('Active Currencies:', 'commerce-control-suite'); ?></strong> <?php echo esc_html($stats['active_currencies']); ?> | 
-                    <strong><?php esc_html_e('Available Gateways:', 'commerce-control-suite'); ?></strong> <?php echo esc_html($stats['available_gateways']); ?>
+                    <strong><?php esc_html_e('Total Rules:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <?php echo esc_html($stats['total_rules']); ?> | 
+                    <strong><?php esc_html_e('Active Currencies:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <?php echo esc_html($stats['active_currencies']); ?> | 
+                    <strong><?php esc_html_e('Available Gateways:', 'kazeem-payment-order-controls-for-woocommerce'); ?></strong> <?php echo esc_html($stats['available_gateways']); ?>
                 </p>
             </div>
             
@@ -909,14 +916,14 @@ class Kazeem_Payment_Order_Controls {
                         
                         <p class="submit">
                             <input type="submit" name="submit" class="button button-primary" value="Save Rule" />
-                            <a href="<?php echo esc_url(admin_url('admin.php?page=commerce-control-suite-payment-gateway')); ?>" class="button">Cancel</a>
+                            <a href="<?php echo esc_url(admin_url('admin.php?page=kazeem-payment-order-controls-for-woocommerce-payment-gateway')); ?>" class="button">Cancel</a>
                         </p>
                     </form>
                 </div>
             <?php else: ?>
                 <!-- Rules List Table -->
                 <p>
-                    <a href="<?php echo esc_url(admin_url('admin.php?page=commerce-control-suite-payment-gateway&action=add')); ?>" class="button button-primary">Add New Rule</a>
+                    <a href="<?php echo esc_url(admin_url('admin.php?page=kazeem-payment-order-controls-for-woocommerce-payment-gateway&action=add')); ?>" class="button button-primary">Add New Rule</a>
                 </p>
                 
                 <?php if (!empty($settings['rules'])): ?>
@@ -957,15 +964,15 @@ class Kazeem_Payment_Order_Controls {
                             <td>
                                 <?php 
                                 $is_enabled = !isset($rule['enabled']) || $rule['enabled'];
-                                echo $is_enabled ? '<span style="color: green;">●</span> ' . esc_html__('Enabled', 'commerce-control-suite') : '<span style="color: red;">●</span> ' . esc_html__('Disabled', 'commerce-control-suite');
+                                echo $is_enabled ? '<span style="color: green;">●</span> ' . esc_html__('Enabled', 'kazeem-payment-order-controls-for-woocommerce') : '<span style="color: red;">●</span> ' . esc_html__('Disabled', 'kazeem-payment-order-controls-for-woocommerce');
                                 ?>
                             </td>
                             <td>
-                                <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=commerce-control-suite-payment-gateway&action=edit&rule_id=' . $index), 'edit_rule')); ?>" class="button button-small">Edit</a>
-                                <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=commerce-control-suite-payment-gateway&action=toggle&rule_id=' . $index), 'toggle_rule')); ?>" class="button button-small">
+                                <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=kazeem-payment-order-controls-for-woocommerce-payment-gateway&action=edit&rule_id=' . $index), 'edit_rule')); ?>" class="button button-small">Edit</a>
+                                <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=kazeem-payment-order-controls-for-woocommerce-payment-gateway&action=toggle&rule_id=' . $index), 'toggle_rule')); ?>" class="button button-small">
                                     <?php echo $is_enabled ? 'Disable' : 'Enable'; ?>
                                 </a>
-                                <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=commerce-control-suite-payment-gateway&action=delete&rule_id=' . $index), 'delete_rule')); ?>" 
+                                <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=kazeem-payment-order-controls-for-woocommerce-payment-gateway&action=delete&rule_id=' . $index), 'delete_rule')); ?>" 
                                    class="button button-small" 
                                    onclick="return confirm('Are you sure you want to delete this rule?');">Delete</a>
                             </td>
@@ -975,7 +982,7 @@ class Kazeem_Payment_Order_Controls {
                 </table>
                 <?php else: ?>
                 <div class="notice notice-warning">
-                    <p>No payment gateway rules configured yet. <a href="<?php echo esc_url(admin_url('admin.php?page=commerce-control-suite-payment-gateway&action=add')); ?>">Add your first rule</a>.</p>
+                    <p>No payment gateway rules configured yet. <a href="<?php echo esc_url(admin_url('admin.php?page=kazeem-payment-order-controls-for-woocommerce-payment-gateway&action=add')); ?>">Add your first rule</a>.</p>
                 </div>
                 <?php endif; ?>
             <?php endif; ?>
@@ -1004,7 +1011,7 @@ class Kazeem_Payment_Order_Controls {
             unset( $settings['rules'][ $rule_id ] );
             $settings['rules'] = array_values( $settings['rules'] ); // Reindex array
             $this->paymentGatewayControl->updateSettings( $settings );
-            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Rule deleted successfully!', 'commerce-control-suite' ) . '</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Rule deleted successfully!', 'kazeem-payment-order-controls-for-woocommerce' ) . '</p></div>';
         }
     }
 
@@ -1021,7 +1028,7 @@ class Kazeem_Payment_Order_Controls {
         if ( isset( $settings['rules'][ $rule_id ] ) ) {
             $settings['rules'][ $rule_id ]['enabled'] = ! isset( $settings['rules'][ $rule_id ]['enabled'] ) || $settings['rules'][ $rule_id ]['enabled'] ? false : true;
             $this->paymentGatewayControl->updateSettings( $settings );
-            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Rule status updated!', 'commerce-control-suite' ) . '</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Rule status updated!', 'kazeem-payment-order-controls-for-woocommerce' ) . '</p></div>';
         }
     }
 
@@ -1055,7 +1062,7 @@ class Kazeem_Payment_Order_Controls {
         }
 
         $this->paymentGatewayControl->updateSettings( $settings );
-        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Rule saved successfully!', 'commerce-control-suite' ) . '</p></div>';
+        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Rule saved successfully!', 'kazeem-payment-order-controls-for-woocommerce' ) . '</p></div>';
     }
     
     /**
@@ -1121,8 +1128,28 @@ class Kazeem_Payment_Order_Controls {
         register_rest_route('shipping/v1', '/' . $endpoint, array(
             'methods' => 'POST',
             'callback' => array($this, 'handleWebhook'),
-            'permission_callback' => '__return_true', // Adjust security as needed
+            'permission_callback' => array($this, 'checkWebhookPermission'),
         ));
+    }
+
+    /**
+     * Check webhook permission
+     */
+    public function checkWebhookPermission($request) {
+        $settings = get_option($this->optionName, array());
+        $secret = isset($settings['webhook_secret']) ? $settings['webhook_secret'] : '';
+        
+        if (empty($secret)) {
+            return true;
+        }
+        
+        $providedSecret = $request->get_header('X-KPOC-Secret');
+        
+        if ($providedSecret === $secret) {
+            return true;
+        }
+        
+        return new WP_Error('rest_forbidden', __('Invalid secret key.', 'kazeem-payment-order-controls-for-woocommerce'), array('status' => 401));
     }
     
     public function handleWebhook(WP_REST_Request $request) {
@@ -1322,7 +1349,7 @@ function kazeem_payment_order_controls_init() {
         add_action('admin_notices', function() {
             ?>
             <div class="notice notice-error is-dismissible">
-                <p><?php esc_html_e('Kazeem Payment & Order Controls requires WooCommerce to be installed and active.', 'commerce-control-suite'); ?></p>
+                <p><?php esc_html_e('Kazeem Payment & Order Controls requires WooCommerce to be installed and active.', 'kazeem-payment-order-controls-for-woocommerce'); ?></p>
             </div>
             <?php
         });
