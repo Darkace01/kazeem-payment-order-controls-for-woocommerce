@@ -14,7 +14,6 @@
  * Requires PHP: 7.2
  * WC requires at least: 3.0
  * WC tested up to: 8.0
- * Tested up to: 6.9
  */
 
 // Prevent direct access
