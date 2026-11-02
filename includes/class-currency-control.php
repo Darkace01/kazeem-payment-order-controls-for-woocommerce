@@ -50,12 +50,38 @@ class Kazeem_Payment_Order_Controls_Currency_Control {
 
             add_filter('woocommerce_get_price_html', array($this, 'get_price_html'), 10, 2);
             
+            add_filter('woocommerce_currency', array($this, 'get_current_currency'), 999);
             add_filter('woocommerce_product_get_price', array($this, 'convert_price'), 10, 2);
             add_filter('woocommerce_product_get_regular_price', array($this, 'convert_price'), 10, 2);
             add_filter('woocommerce_product_get_sale_price', array($this, 'convert_price'), 10, 2);
 
             add_filter('woocommerce_currency_symbol', array($this, 'get_currency_symbol'), 10, 2);
+
+            add_shortcode('kpoc_currency_switcher', array($this, 'render_switcher_shortcode'));
         }
+    }
+
+    /**
+     * Render the frontend currency switcher: [kpoc_currency_switcher]
+     *
+     * @return string
+     */
+    public function render_switcher_shortcode() {
+        $currencies = $this->get_available_currencies();
+        if (count($currencies) < 2) {
+            return '';
+        }
+
+        $current = $this->get_current_currency();
+        $output  = '<ul class="kpoc-currency-switcher">';
+        foreach ($currencies as $code) {
+            $url     = esc_url(add_query_arg('currency', $code));
+            $label   = esc_html($code);
+            $output .= '<li>' . ($code === $current ? '<strong>' . $label . '</strong>' : '<a href="' . $url . '" rel="nofollow">' . $label . '</a>') . '</li>';
+        }
+        $output .= '</ul>';
+
+        return $output;
     }
 
     public function get_price_html($price, $product){

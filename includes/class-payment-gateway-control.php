@@ -25,13 +25,14 @@ class Kazeem_Payment_Order_Controls_Payment_Gateway_Control {
         }
         
         $settings = $this->getSettings();
-        $currentCurrency = Kazeem_Payment_Order_Controls_Currency_Control::instance()->get_current_currency();
+        $currentCurrency = get_woocommerce_currency();
         
         if (empty($settings['rules']) || !is_array($settings['rules'])) {
             return $availableGateways;
         }
         
         $allowedGateways = array();
+        $hasMatchingRule = false;
         
         // Check which gateways are allowed for current currency
         foreach ($settings['rules'] as $rule) {
@@ -43,6 +44,7 @@ class Kazeem_Payment_Order_Controls_Payment_Gateway_Control {
             $ruleCurrencies = isset($rule['currencies']) ? $rule['currencies'] : (isset($rule['currency']) ? array($rule['currency']) : array());
             
             if (in_array($currentCurrency, $ruleCurrencies)) {
+                $hasMatchingRule = true;
                 if (isset($rule['gateways']) && is_array($rule['gateways'])) {
                     $allowedGateways = array_merge($allowedGateways, $rule['gateways']);
                 }
@@ -50,18 +52,25 @@ class Kazeem_Payment_Order_Controls_Payment_Gateway_Control {
         }
         
         // If no specific rules for this currency, return all gateways
-        if (empty($allowedGateways)) {
+        if (!$hasMatchingRule || empty($allowedGateways)) {
             return $availableGateways;
         }
         
         // Filter gateways
+        $filteredGateways = array();
         foreach ($availableGateways as $gatewayId => $gateway) {
-            if (!in_array($gatewayId, $allowedGateways)) {
-                unset($availableGateways[$gatewayId]);
+            if (in_array($gatewayId, $allowedGateways)) {
+                $filteredGateways[$gatewayId] = $gateway;
             }
         }
         
-        return $availableGateways;
+        // Fallback: if filtering resulted in no gateways but we had available ones,
+        // return all of them to prevent breaking the checkout page.
+        if (empty($filteredGateways) && !empty($availableGateways)) {
+            return $availableGateways;
+        }
+        
+        return $filteredGateways;
     }
     
     /**

@@ -305,6 +305,7 @@ class Kazeem_Payment_Order_Controls {
      */
     public function renderSectionInfo() {
         echo '<p>' . esc_html__('Configure your shipping webhook endpoint settings.', 'kazeem-payment-order-controls-for-woocommerce') . '</p>';
+        echo '<p><strong>' . esc_html__('Important:', 'kazeem-payment-order-controls-for-woocommerce') . '</strong> ' . esc_html__('The webhook rejects every request (HTTP 403) until you set a Webhook Secret below. Senders must POST JSON with the header X-KPOC-Secret set to that value.', 'kazeem-payment-order-controls-for-woocommerce') . '</p>';
     }
     
     /**
@@ -1140,7 +1141,7 @@ class Kazeem_Payment_Order_Controls {
         $secret = isset($settings['webhook_secret']) ? $settings['webhook_secret'] : '';
         
         if (empty($secret)) {
-            return true;
+            return new WP_Error('rest_forbidden', __('Webhook secret is not configured.', 'kazeem-payment-order-controls-for-woocommerce'), array('status' => 403));
         }
         
         $providedSecret = $request->get_header('X-KPOC-Secret');

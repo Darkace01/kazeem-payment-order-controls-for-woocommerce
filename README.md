@@ -44,6 +44,8 @@ Kazeem Payment & Order Controls for WooCommerce is a comprehensive WordPress plu
 - **Currency Switcher** - Allow customers to switch currencies on the frontend
 - **Automatic Price Conversion** - Prices automatically update based on defined rates
 - **Symbol Customization** - Customize currency symbols
+- **Shortcode** - `[kpoc_currency_switcher]` shows the switcher anywhere
+- **Per-product Prices** - Optional fixed price per currency on each product
 - **Geolocate (Coming Soon)** - Automatically detect customer currency
 
 ### 🔗 Shipping Event Webhooks
@@ -63,54 +65,86 @@ Kazeem Payment & Order Controls for WooCommerce is a comprehensive WordPress plu
 
 == Installation ==
 
-1. Upload the plugin files to `/wp-content/plugins/kazeem-payment-order-controls-for-woocommerce/`
-2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Navigate to **Kazeem Payment & Order Controls** in the WordPress admin menu
-4. Configure your settings in each section
+**Requirements:** WordPress 6.2+, PHP 7.2+, and the WooCommerce plugin installed and active. Without WooCommerce the plugin shows an admin notice and stays inactive.
+
+1. Install and activate **WooCommerce** (Plugins > Add New).
+2. Upload the plugin to `/wp-content/plugins/kazeem-payment-order-controls-for-woocommerce/`, or install it from Plugins > Add New.
+3. Activate it through the **Plugins** menu. A database table for webhook logs is created automatically.
+4. Open **Kazeem Payment & Order Controls** in the admin sidebar (or click **Settings** on the Plugins screen). The submenus are: Dashboard, Event Logs, Order Control, Payment Gateway, Currency Control.
+
+Defaults on a fresh install: orders are allowed, no restrictions are active, no payment gateway rules exist, the currency switcher is off, and the webhook is locked until you set a secret.
 
 == Configuration ==
 
+All settings pages require the `manage_options` capability (Administrators).
+
 ### Order Control Settings
 
-1. Go to **Kazeem Payment & Order Controls > Order Control**
-2. Enable/disable order placement
-3. Choose restriction type (All Products, Categories, or Specific Products)
-4. Set time restrictions if needed
-5. Configure date/time range if needed
-6. Set redirect URL and custom message
-7. Save settings
+Go to **Kazeem Payment & Order Controls > Order Control**.
+
+- **Enable Orders** - checked means customers may order. Uncheck it to stop all ordering immediately: Add to Cart is hidden, a notice appears on product pages and checkout redirects.
+- **Restriction Type** - which products the time/date limits below apply to: All Products, Specific Categories or Specific Products. Products outside the selection are always orderable.
+- **Time Restrictions** - orders only allowed between Start Time and End Time each day (store timezone from Settings > General). Overnight ranges such as 22:00-06:00 work.
+- **Date/Time Range** - orders only allowed between two exact dates.
+- **Redirect URL** - where checkout visitors are sent while ordering is closed (blank = homepage).
+- **Disabled Message** - text shown to customers.
+
+Click **Save Settings**. The blue "Current Status" box shows Active or Disabled right now.
 
 ### Payment Gateway Control
 
-1. Go to **Kazeem Payment & Order Controls > Payment Gateway**
-2. Click **Add New Rule**
-3. Give your rule a name
-4. Select currencies for the rule
-5. Select payment gateways to show for those currencies
-6. Enable the rule
-7. Save
+Go to **Kazeem Payment & Order Controls > Payment Gateway**.
+
+1. Click **Add New Rule** and enter a name.
+2. Tick the currencies the rule applies to.
+3. Tick the payment gateways that should be offered for those currencies.
+4. Leave **Enable this rule** ticked and click **Save Rule**.
+
+At checkout, when the cart currency matches a rule, only the ticked gateways are offered. Use the table to edit, enable/disable or delete rules. Gateways must first be enabled in WooCommerce > Settings > Payments to appear in the list.
 
 ### Currency Control
 
-1. Go to **Kazeem Payment & Order Controls > Currency Control**
-2. Enable the Currency Control module
-3. Add currencies and set their exchange rates relative to your base currency
-4. Customize symbols if necessary
-5. Save settings to activate the frontend switcher
+Go to **Kazeem Payment & Order Controls > Currency Control**.
+
+1. Tick **Enable Currency Switcher** and pick your store's Default Currency (normally your WooCommerce currency).
+2. Click **Add Currency**, choose a currency (or Custom Currency), adjust the symbol and enter the exchange rate (1 unit of default currency = N units of this currency).
+3. Click **Save Changes**.
+4. Place the switcher where customers can see it: add the shortcode `[kpoc_currency_switcher]` to a page, widget or block (Shortcode block). It lists the currencies as links. You can also link directly with `?currency=EUR`.
+5. Optional fixed prices: edit a product and fill the **Currency Pricing** box. A blank value uses the exchange rate.
+
+Note: page-caching plugins should exclude pages that show prices from caching, or customers may see another visitor's currency.
 
 ### Shipping Webhooks
 
-1. Go to **Kazeem Payment & Order Controls > Event Logs**
-2. Configure your webhook endpoint slug
-3. Copy the webhook URL
-4. Provide it to your shipping platform
-5. View logs as events are received
+Go to **Kazeem Payment & Order Controls > Event Logs**.
 
-## Webhook URL Format
+1. Optionally change the **Endpoint Slug** (default `shipping-webhook`).
+2. **Set a Webhook Secret** (any long random string). Until a secret is saved, every request is rejected with HTTP 403.
+3. Click **Save Settings**, then give the webhook URL and secret to your shipping platform.
+4. Received events appear under Recent Logs; click **View Details** for the body, headers and response.
+
+Webhook URL format:
 
 ```
-https://yoursite.com/wp-json/shipping/v1/your-endpoint-slug
+https://yoursite.com/wp-json/shipping/v1/shipping-webhook
 ```
+
+Requests must be `POST` with the header `X-KPOC-Secret: <your secret>` and a JSON body. Supported fields: `order_id`, `tracking_number`, `status`, `event_type`. When `order_id` matches a WooCommerce order, the tracking number is saved to the order and the status is added as an order note. Developers can hook the `kazeem_payment_order_controls_shipping_event_received` action.
+
+== Testing the Plugin ==
+
+Quick checks on a fresh site (WooCommerce active, at least one product):
+
+1. **Order Control:** uncheck Enable Orders and save. View a product page: Add to Cart is replaced by your message. Re-check it and the button returns.
+2. **Payment Gateway:** enable two gateways in WooCommerce > Settings > Payments (e.g. Cash on delivery and Direct bank transfer). Add a rule for your store currency that allows only one of them. At checkout only that gateway appears.
+3. **Currency Control:** enable the switcher, add EUR with rate 0.9, save, put `[kpoc_currency_switcher]` on a page, and click EUR. Product prices change.
+4. **Webhook:** set a secret, then run:
+
+```
+curl -X POST "https://yoursite.com/wp-json/shipping/v1/shipping-webhook" -H "Content-Type: application/json" -H "X-KPOC-Secret: YOUR_SECRET" -d '{"order_id":123,"tracking_number":"TRK1","status":"shipped"}'
+```
+
+The response is `{"success":true,...}` and a log row appears under Event Logs. Without the header you get HTTP 401 (wrong secret) or 403 (no secret configured).
 
 == Frequently Asked Questions ==
 
@@ -135,15 +169,23 @@ Yes, you can create as many rules as needed. Rules can be enabled/disabled indiv
 
 ### Is the webhook endpoint secure?
 
-You can implement additional security by:
+Yes. Requests are rejected unless they send the `X-KPOC-Secret` header matching the Webhook Secret you set. Always use HTTPS.
 
-- Using HTTPS
-- Validating request headers
-- IP whitelisting (custom implementation)
+### The webhook returns 403
+
+No Webhook Secret has been saved yet. Set one under Event Logs and send it in the `X-KPOC-Secret` header.
+
+### How do customers switch currency?
+
+Add the `[kpoc_currency_switcher]` shortcode to a page or widget.
 
 == Changelog ==
 
 ### 1.2.7
+
+- Added `[kpoc_currency_switcher]` shortcode for the frontend currency switcher
+- Added setup, usage and testing instructions to the readme
+- Added a notice explaining that the webhook secret is required
 
 - Renamed plugin to "Kazeem Payment & Order Controls for WooCommerce"
 - Updated text domain to `kazeem-payment-order-controls-for-woocommerce`
