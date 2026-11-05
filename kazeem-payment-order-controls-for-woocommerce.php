@@ -72,9 +72,6 @@ class Kazeem_Payment_Order_Controls {
         // Register REST API endpoint
         add_action('rest_api_init', array($this, 'registerEndpoint'));
         
-        // Create database table on plugin activation
-        register_activation_hook($this->pluginFile, array($this, 'createLogTable'));
-        
         // Check and create table if it doesn't exist (fallback)
         add_action('admin_init', array($this, 'checkDatabaseTable'));
         
@@ -1312,34 +1309,43 @@ class Kazeem_Payment_Order_Controls {
     }
     
     public function createLogTable() {
-        global $wpdb;
-        
-        $tableName = $wpdb->prefix . $this->logTable;
-        $charsetCollate = $wpdb->get_charset_collate();
-        
-        $sql = "CREATE TABLE IF NOT EXISTS $tableName (
-            id bigint(20) NOT NULL AUTO_INCREMENT,
-            request_body longtext NOT NULL,
-            request_params longtext,
-            request_headers longtext,
-            ip_address varchar(45),
-            status varchar(20) DEFAULT 'pending',
-            response_data longtext,
-            created_at datetime NOT NULL,
-            processed_at datetime,
-            PRIMARY KEY  (id),
-            KEY status (status),
-            KEY created_at (created_at)
-        ) $charsetCollate;";
-        
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql);
-        
-        // Clear table existence cache
-        wp_cache_delete( 'table_exists_' . $tableName, 'kazeem_payment_order_controls_schema' );
+        kazeem_payment_order_controls_create_log_table();
     }
 }
 } // End if class_exists check
+
+/**
+ * Create the event log table (runs on activation and as an admin_init fallback).
+ */
+if (!function_exists('kazeem_payment_order_controls_create_log_table')) {
+function kazeem_payment_order_controls_create_log_table() {
+    global $wpdb;
+
+    $tableName = $wpdb->prefix . 'kpoc_event_logs';
+    $charsetCollate = $wpdb->get_charset_collate();
+
+    $sql = "CREATE TABLE $tableName (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        request_body longtext NOT NULL,
+        request_params longtext,
+        request_headers longtext,
+        ip_address varchar(45),
+        status varchar(20) DEFAULT 'pending',
+        response_data longtext,
+        created_at datetime NOT NULL,
+        processed_at datetime,
+        PRIMARY KEY  (id),
+        KEY status (status),
+        KEY created_at (created_at)
+    ) $charsetCollate;";
+
+    require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+    dbDelta($sql);
+
+    wp_cache_delete('table_exists_' . $tableName, 'kazeem_payment_order_controls_schema');
+}
+}
+register_activation_hook(__FILE__, 'kazeem_payment_order_controls_create_log_table');
 
 // Initialize the plugin only once
 if (!function_exists('kazeem_payment_order_controls_init')) {
